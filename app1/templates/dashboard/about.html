@@ -1,0 +1,217 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}About Page — Dashboard{% endblock %}
+{% block page_title %}About Page Manager{% endblock %}
+
+{% block content %}
+
+<!-- QUICK STATS -->
+<div class="stat-cards" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr));">
+  <div class="stat-card">
+    <span class="stat-card-icon">🏆</span>
+    <div class="stat-card-num" style="color:#f8b400;">{{ achievements.count }}</div>
+    <div class="stat-card-lbl">Achievements</div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-card-icon">💡</span>
+    <div class="stat-card-num" style="color:#a78bfa;">{{ values.count }}</div>
+    <div class="stat-card-lbl">Core Values</div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-card-icon">❓</span>
+    <div class="stat-card-num" style="color:#60a5fa;">{{ faqs.count }}</div>
+    <div class="stat-card-lbl">FAQs</div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-card-icon">📬</span>
+    <div class="stat-card-num" style="color:#00ff87;">{{ total_contacts }}</div>
+    <div class="stat-card-lbl">Messages</div>
+    {% if unread_contacts %}
+    <div style="margin-top:.5rem;"><span class="badge badge-red">{{ unread_contacts }} unread</span></div>
+    {% endif %}
+  </div>
+</div>
+
+
+<!-- ══ SECTION 1: PAGE CONTENT ══ -->
+<div style="margin-bottom:2rem;">
+  <div class="section-head">
+    <h2>📄 Page Content</h2>
+    <a href="{% url 'dashboard_about_edit' %}" class="btn btn-primary">✏️ Edit Content</a>
+  </div>
+  <div class="dash-table-wrap">
+    <table class="dash-table">
+      <thead><tr><th>Section</th><th>Current Value</th><th></th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-green">Hero Heading</span></td>
+          <td style="color:var(--text);">{{ about.hero_heading|default:"Not set" }}</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">Vision</span></td>
+          <td style="color:var(--muted);font-size:.85rem;">{{ about.vision_text|truncatechars:80|default:"Not set" }}</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-orange">Mission</span></td>
+          <td style="color:var(--muted);font-size:.85rem;">{{ about.mission_text|truncatechars:80|default:"Not set" }}</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-gray">Contact Email</span></td>
+          <td style="color:var(--muted);font-size:.85rem;">{{ about.contact_email|default:"Not set" }}</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-gray">Social Links</span></td>
+          <td>
+            <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
+              {% if about.social_instagram %}<span class="badge badge-green">Instagram</span>{% endif %}
+              {% if about.social_linkedin  %}<span class="badge badge-blue">LinkedIn</span>{% endif %}
+              {% if about.social_twitter   %}<span class="badge badge-blue">Twitter</span>{% endif %}
+              {% if about.social_github    %}<span class="badge badge-gray">GitHub</span>{% endif %}
+              {% if about.social_youtube   %}<span class="badge badge-red">YouTube</span>{% endif %}
+              {% if about.social_discord   %}<span class="badge badge-blue">Discord</span>{% endif %}
+              {% if not about.social_instagram and not about.social_linkedin and not about.social_twitter %}
+                <span style="color:var(--muted);font-size:.8rem;">None added</span>
+              {% endif %}
+            </div>
+          </td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ══ SECTION 2: ACHIEVEMENTS ══ -->
+<div style="margin-bottom:2rem;">
+  <div class="section-head">
+    <h2>🏆 Achievements</h2>
+    <a href="{% url 'dashboard_achievement_create' %}" class="btn btn-primary">+ Add Achievement</a>
+  </div>
+  <div class="dash-table-wrap">
+    <table class="dash-table">
+      <thead><tr><th>Icon</th><th>Title</th><th>Highlight</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for a in achievements %}
+        <tr>
+          <td style="font-size:1.4rem;">{{ a.icon }}</td>
+          <td style="font-weight:600;color:var(--text);">{{ a.title }}</td>
+          <td>{% if a.highlight %}<span class="badge badge-gold">{{ a.highlight }}</span>{% else %}<span style="color:var(--muted);">—</span>{% endif %}</td>
+          <td style="font-family:var(--mono);font-size:.72rem;color:var(--muted);">{{ a.date|date:"M Y"|default:"—" }}</td>
+          <td>{% if a.is_active %}<span class="badge badge-green">Active</span>{% else %}<span class="badge badge-gray">Hidden</span>{% endif %}</td>
+          <td>
+            <div style="display:flex;gap:.4rem;">
+              <a href="{% url 'dashboard_achievement_edit' a.pk %}" class="btn btn-outline btn-sm">Edit</a>
+              <a href="{% url 'dashboard_achievement_delete' a.pk %}" class="btn btn-danger btn-sm"
+                 onclick="return confirm('Delete this achievement?')">Del</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6"><div class="empty-state"><p>🏆</p><p>No achievements yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ══ SECTION 3: CORE VALUES ══ -->
+<div style="margin-bottom:2rem;">
+  <div class="section-head">
+    <h2>💡 Core Values</h2>
+    <a href="{% url 'dashboard_value_create' %}" class="btn btn-primary">+ Add Value</a>
+  </div>
+  <div class="dash-table-wrap">
+    <table class="dash-table">
+      <thead><tr><th>Icon</th><th>Title</th><th>Description</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for v in values %}
+        <tr>
+          <td style="font-size:1.4rem;">{{ v.icon }}</td>
+          <td style="font-weight:600;color:var(--text);">{{ v.title }}</td>
+          <td style="color:var(--muted);font-size:.84rem;">{{ v.description|truncatechars:55 }}</td>
+          <td style="font-family:var(--mono);font-size:.75rem;color:var(--muted);">{{ v.order }}</td>
+          <td>{% if v.is_active %}<span class="badge badge-green">Active</span>{% else %}<span class="badge badge-gray">Hidden</span>{% endif %}</td>
+          <td>
+            <div style="display:flex;gap:.4rem;">
+              <a href="{% url 'dashboard_value_edit' v.pk %}" class="btn btn-outline btn-sm">Edit</a>
+              <a href="{% url 'dashboard_value_delete' v.pk %}" class="btn btn-danger btn-sm"
+                 onclick="return confirm('Delete this value?')">Del</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6"><div class="empty-state"><p>💡</p><p>No values yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ══ SECTION 4: FAQs ══ -->
+<div style="margin-bottom:2rem;">
+  <div class="section-head">
+    <h2>❓ FAQs</h2>
+    <a href="{% url 'dashboard_faq_create' %}" class="btn btn-primary">+ Add FAQ</a>
+  </div>
+  <div class="dash-table-wrap">
+    <table class="dash-table">
+      <thead><tr><th>#</th><th>Question</th><th>Answer</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for f in faqs %}
+        <tr>
+          <td style="font-family:var(--mono);font-size:.75rem;color:var(--muted);">{{ f.order }}</td>
+          <td style="font-weight:600;color:var(--text);">{{ f.question|truncatechars:55 }}</td>
+          <td style="color:var(--muted);font-size:.84rem;">{{ f.answer|truncatechars:55 }}</td>
+          <td>{% if f.is_active %}<span class="badge badge-green">Active</span>{% else %}<span class="badge badge-gray">Hidden</span>{% endif %}</td>
+          <td>
+            <div style="display:flex;gap:.4rem;">
+              <a href="{% url 'dashboard_faq_edit' f.pk %}" class="btn btn-outline btn-sm">Edit</a>
+              <a href="{% url 'dashboard_faq_delete' f.pk %}" class="btn btn-danger btn-sm"
+                 onclick="return confirm('Delete this FAQ?')">Del</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5"><div class="empty-state"><p>❓</p><p>No FAQs yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ══ SECTION 5: RECENT MESSAGES ══ -->
+<div>
+  <div class="section-head">
+    <h2>📬 Recent Contact Messages</h2>
+    <a href="{% url 'dashboard_contacts' %}" class="btn btn-outline">View All →</a>
+  </div>
+  <div class="dash-table-wrap">
+    <table class="dash-table">
+      <thead><tr><th>From</th><th>Subject</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for c in contacts %}
+        <tr>
+          <td>
+            <div style="font-weight:600;color:var(--text);">{{ c.name }}</div>
+            <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);">{{ c.email }}</div>
+          </td>
+          <td style="color:var(--muted);font-size:.84rem;">{{ c.subject|default:"(no subject)"|truncatechars:40 }}</td>
+          <td style="font-family:var(--mono);font-size:.7rem;color:var(--muted);">{{ c.submitted_at|date:"M d, Y" }}</td>
+          <td>{% if c.is_read %}<span class="badge badge-gray">Read</span>{% else %}<span class="badge badge-green">New</span>{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4"><div class="empty-state"><p>📭</p><p>No messages yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

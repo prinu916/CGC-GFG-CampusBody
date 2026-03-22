@@ -1,0 +1,371 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}{{ action }} Team Member — Dashboard{% endblock %}
+{% block page_title %}{{ action }} Team Member{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* skill tag preview */
+  .skill-preview {
+    display: flex; flex-wrap: wrap; gap: .35rem;
+    margin-top: .6rem; min-height: 28px;
+  }
+  .skill-tag-preview {
+    font-family: var(--mono); font-size: .65rem;
+    color: var(--green); background: rgba(0,255,135,.07);
+    border: 1px solid rgba(0,255,135,.2);
+    padding: .18rem .55rem; border-radius: 100px;
+    display: flex; align-items: center; gap: .3rem;
+  }
+  .skill-tag-preview button {
+    background: none; border: none; color: #f87171;
+    font-size: .7rem; line-height: 1; padding: 0;
+    cursor: none; transition: color .2s;
+  }
+  .skill-tag-preview button:hover { color: #ef4444; }
+
+  /* social link row */
+  .social-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px,1fr));
+    gap: 1rem;
+  }
+  .social-input-wrap {
+    display: flex; align-items: center;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 9px; overflow: hidden;
+    transition: border-color .2s;
+  }
+  .social-input-wrap:focus-within { border-color: rgba(0,255,135,.4); }
+  .social-icon {
+    width: 38px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .9rem; background: rgba(255,255,255,.03);
+    border-right: 1px solid rgba(255,255,255,.07);
+    align-self: stretch;
+  }
+  .social-input-wrap input {
+    flex: 1; background: transparent; border: none !important;
+    border-radius: 0 !important; color: var(--text);
+    padding: .65rem .85rem; font-family: var(--sans);
+    font-size: .88rem; font-weight: 300;
+  }
+  .social-input-wrap input:focus { outline: none; border: none !important; }
+  .social-input-wrap input::placeholder { color: #2a3a4a; }
+
+  /* avatar preview */
+  .avatar-preview-wrap { position: relative; display: inline-block; }
+  .avatar-preview {
+    width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
+    border: 2px solid rgba(0,255,135,.25);
+    box-shadow: 0 0 18px rgba(0,255,135,.15);
+    display: block;
+  }
+  .avatar-fallback {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg,#2F8D46,#00ff87);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--display); font-size: 1.6rem; font-weight: 800; color: #04080c;
+    border: 2px solid rgba(0,255,135,.25);
+  }
+
+  /* section divider */
+  .form-section-title {
+    font-family: var(--mono); font-size: .65rem; color: var(--green);
+    letter-spacing: .15em; text-transform: uppercase;
+    margin: 1.75rem 0 1rem;
+    display: flex; align-items: center; gap: .75rem;
+  }
+  .form-section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(0,255,135,.2), transparent);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  <div class="form-card">
+
+    <!-- ── BASIC INFO ── -->
+    <div class="form-section-title">// Basic Information</div>
+
+    <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:1.5rem;">
+
+      <!-- Avatar -->
+      <div style="flex-shrink:0;text-align:center;">
+        <div class="avatar-preview-wrap" id="avatar-wrap">
+          {% if member and member.photo %}
+            <img src="{{ member.photo.url }}" class="avatar-preview" id="avatar-preview">
+          {% else %}
+            <div class="avatar-fallback" id="avatar-fallback">
+              {{ member.get_initials|default:"?" }}
+            </div>
+          {% endif %}
+        </div>
+        <div style="margin-top:.75rem;">
+          <label for="photo-input"
+                 style="font-family:var(--mono);font-size:.65rem;color:var(--green);letter-spacing:.08em;cursor:none;display:block;margin-bottom:.3rem;">
+            PHOTO
+          </label>
+          <input type="file" name="photo" id="photo-input" accept="image/*"
+                 style="font-family:var(--mono);font-size:.68rem;color:var(--muted);display:block;max-width:130px;"
+                 onchange="previewPhoto(this)">
+          {% if member and member.photo %}
+            <p style="font-family:var(--mono);font-size:.58rem;color:#3a4a58;margin-top:.35rem;">Upload new to replace</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Name / Role / Team -->
+      <div style="flex:1;min-width:220px;">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" name="name"
+                   value="{{ member.name|default:'' }}"
+                   placeholder="e.g. Arjun Sharma" required
+                   oninput="updateInitials(this.value)">
+          </div>
+          <div class="form-group">
+            <label>Role / Title *</label>
+            <input type="text" name="role"
+                   value="{{ member.role|default:'' }}"
+                   placeholder="e.g. Tech Lead, Frontend Dev" required>
+          </div>
+          <div class="form-group">
+            <label>Team *</label>
+            <select name="team" required>
+              <option value="">— Select Team —</option>
+              {% for cat in categories %}
+                <option value="{{ cat.pk }}"
+                  {% if member and member.team_id == cat.pk %}selected{% endif %}>
+                  {{ cat.icon }} {{ cat.get_name_display }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Display Order</label>
+            <input type="number" name="order" min="0"
+                   value="{{ member.order|default:'0' }}"
+                   placeholder="0 = first">
+            <small style="color:var(--muted);font-family:var(--mono);font-size:.6rem;margin-top:.25rem;display:block;">Lower number = shown first within team</small>
+          </div>
+        </div>
+
+        <!-- Active toggle -->
+        <div class="form-check" style="margin-top:.5rem;">
+          <input type="checkbox" name="is_active" id="is_active"
+                 {% if not member or member.is_active %}checked{% endif %}>
+          <label for="is_active">Active — visible on the team page</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ACADEMIC INFO ── -->
+    <div class="form-section-title">// Academic Details</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Branch / Department</label>
+        <input type="text" name="branch"
+               value="{{ member.branch|default:'' }}"
+               placeholder="e.g. Computer Science">
+      </div>
+      <div class="form-group">
+        <label>Year / Batch</label>
+        <input type="text" name="year"
+               value="{{ member.year|default:'' }}"
+               placeholder="e.g. 2nd Year, Batch 2025">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Bio <span style="color:var(--muted);">(shown on team card)</span></label>
+      <textarea name="bio" rows="3"
+                placeholder="Brief intro — 1-2 sentences about this member…">{{ member.bio|default:'' }}</textarea>
+    </div>
+
+    <!-- ── SKILLS ── -->
+    <div class="form-section-title">// Skills</div>
+    <div class="form-group">
+      <label>Skills <span style="color:var(--muted);">(comma-separated)</span></label>
+      <input type="text" name="skills" id="skills-input"
+             value="{{ member.skills|default:'' }}"
+             placeholder="Python, Django, React, Figma…"
+             oninput="renderSkills(this.value)">
+      <div class="skill-preview" id="skill-preview"></div>
+    </div>
+
+    <!-- ── SOCIAL LINKS ── -->
+    <div class="form-section-title">// Social & Professional Links</div>
+    <div class="social-grid">
+
+      <div class="form-group" style="margin-bottom:0;">
+        <label>GitHub</label>
+        <div class="social-input-wrap">
+          <span class="social-icon">⌥</span>
+          <input type="url" name="github"
+                 value="{{ member.github|default:'' }}"
+                 placeholder="https://github.com/username">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0;">
+        <label>LinkedIn</label>
+        <div class="social-input-wrap">
+          <span class="social-icon">in</span>
+          <input type="url" name="linkedin"
+                 value="{{ member.linkedin|default:'' }}"
+                 placeholder="https://linkedin.com/in/username">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Twitter / X</label>
+        <div class="social-input-wrap">
+          <span class="social-icon">𝕏</span>
+          <input type="url" name="twitter"
+                 value="{{ member.twitter|default:'' }}"
+                 placeholder="https://twitter.com/username">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Instagram</label>
+        <div class="social-input-wrap">
+          <span class="social-icon">📷</span>
+          <input type="url" name="instagram"
+                 value="{{ member.instagram|default:'' }}"
+                 placeholder="https://instagram.com/username">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0;">
+        <label>GFG Profile</label>
+        <div class="social-input-wrap">
+          <span class="social-icon">G</span>
+          <input type="url" name="gfg_profile"
+                 value="{{ member.gfg_profile|default:'' }}"
+                 placeholder="https://auth.geeksforgeeks.org/user/...">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0;">
+        <label>LeetCode</label>
+        <div class="social-input-wrap">
+          <span class="social-icon">LC</span>
+          <input type="url" name="leetcode"
+                 value="{{ member.leetcode|default:'' }}"
+                 placeholder="https://leetcode.com/username">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Email</label>
+        <div class="social-input-wrap">
+          <span class="social-icon">✉</span>
+          <input type="email" name="email"
+                 value="{{ member.email|default:'' }}"
+                 placeholder="member@cgc.ac.in">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Portfolio / Website</label>
+        <div class="social-input-wrap">
+          <span class="social-icon">↗</span>
+          <input type="url" name="portfolio"
+                 value="{{ member.portfolio|default:'' }}"
+                 placeholder="https://yourportfolio.dev">
+        </div>
+      </div>
+
+    </div><!-- /social-grid -->
+
+  </div><!-- /form-card -->
+
+  <!-- Action buttons -->
+  <div style="display:flex;gap:1rem;align-items:center;margin-top:1.5rem;flex-wrap:wrap;">
+    <button type="submit" class="btn btn-primary">
+      {% if action == 'Create' %}✦ Add Member{% else %}💾 Save Changes{% endif %}
+    </button>
+    <a href="{% url 'dashboard_team' %}" class="btn btn-outline">Cancel</a>
+
+    {% if member and role.can_delete %}
+    <a href="{% url 'dashboard_team_delete' member.pk %}"
+       class="btn btn-danger"
+       style="margin-left:auto;"
+       onclick="return confirm('Delete {{ member.name }}? This cannot be undone.')">
+      🗑 Delete Member
+    </a>
+    {% endif %}
+  </div>
+
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ── PHOTO PREVIEW ── */
+function previewPhoto(input) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wrap = document.getElementById('avatar-wrap');
+    const fb   = document.getElementById('avatar-fallback');
+    let img     = document.getElementById('avatar-preview');
+    if (fb) fb.style.display = 'none';
+    if (!img) {
+      img = document.createElement('img');
+      img.id = 'avatar-preview';
+      img.className = 'avatar-preview';
+      wrap.appendChild(img);
+    }
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+/* ── INITIALS FALLBACK ── */
+function updateInitials(name) {
+  const fb = document.getElementById('avatar-fallback');
+  const preview = document.getElementById('avatar-preview');
+  if (!fb || (preview && preview.style.display !== 'none')) return;
+  const parts = name.trim().split(' ').filter(Boolean);
+  if (parts.length >= 2)
+    fb.textContent = parts[0][0].toUpperCase() + parts[parts.length-1][0].toUpperCase();
+  else if (parts.length === 1)
+    fb.textContent = parts[0].slice(0,2).toUpperCase();
+}
+
+/* ── SKILL TAGS PREVIEW ── */
+function renderSkills(val) {
+  const container = document.getElementById('skill-preview');
+  container.innerHTML = '';
+  val.split(',').map(s => s.trim()).filter(Boolean).forEach(skill => {
+    const tag = document.createElement('span');
+    tag.className = 'skill-tag-preview';
+    tag.innerHTML = `${skill} <button type="button" onclick="removeSkill('${skill}')" title="Remove">✕</button>`;
+    container.appendChild(tag);
+  });
+}
+
+function removeSkill(skill) {
+  const input = document.getElementById('skills-input');
+  const skills = input.value.split(',').map(s=>s.trim()).filter(s=>s && s!==skill);
+  input.value = skills.join(', ');
+  renderSkills(input.value);
+}
+
+/* run on load for edit mode */
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('skills-input');
+  if (inp && inp.value) renderSkills(inp.value);
+});
+</script>
+{% endblock %}

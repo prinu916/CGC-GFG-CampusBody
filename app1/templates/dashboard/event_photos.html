@@ -1,0 +1,339 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Photos — {{ event.title }}{% endblock %}
+{% block page_title %}Event Photo Gallery{% endblock %}
+
+{% block extra_css %}
+<style>
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .photo-card {
+    background: rgba(14,21,32,.82);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 12px; overflow: hidden;
+    transition: transform .22s, border-color .22s;
+    position: relative; group: true;
+  }
+  .photo-card:hover { transform: translateY(-4px); border-color: rgba(0,255,135,.2); }
+  .photo-card img {
+    width: 100%; height: 160px; object-fit: cover; display: block;
+  }
+  .photo-card-body {
+    padding: .75rem;
+  }
+  .photo-caption {
+    font-family: var(--sans); font-size: .8rem;
+    color: var(--muted); font-weight: 300; line-height: 1.4;
+    margin-bottom: .6rem; min-height: 1.2rem;
+  }
+  .photo-meta {
+    font-family: var(--mono); font-size: .62rem; color: #3a4a58;
+    margin-bottom: .6rem;
+  }
+  .photo-delete-btn {
+    display: flex; align-items: center; justify-content: center; gap: .35rem;
+    width: 100%; padding: .4rem;
+    background: rgba(239,68,68,.07); border: 1px solid rgba(239,68,68,.18);
+    border-radius: 7px; color: #f87171;
+    font-family: var(--mono); font-size: .65rem; cursor: none;
+    text-decoration: none; transition: all .2s;
+  }
+  .photo-delete-btn:hover { background: rgba(239,68,68,.16); }
+
+  /* upload drop zone */
+  .upload-zone {
+    border: 2px dashed rgba(0,255,135,.22);
+    border-radius: 14px; padding: 2.5rem;
+    text-align: center; cursor: none;
+    transition: all .25s; background: rgba(0,255,135,.03);
+    position: relative;
+  }
+  .upload-zone.drag-over {
+    border-color: rgba(0,255,135,.6);
+    background: rgba(0,255,135,.07);
+  }
+  .upload-zone-icon { font-size: 2.5rem; margin-bottom: .75rem; }
+  .upload-zone-title {
+    font-family: var(--display); font-size: 1rem; font-weight: 700;
+    color: var(--text); margin-bottom: .35rem;
+  }
+  .upload-zone-sub {
+    font-family: var(--mono); font-size: .68rem; color: var(--muted);
+    letter-spacing: .06em;
+  }
+  .upload-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: none;
+    width: 100%; height: 100%;
+  }
+  .selected-previews {
+    display: flex; flex-wrap: wrap; gap: .75rem;
+    margin-top: 1.25rem; justify-content: center;
+  }
+  .sel-prev {
+    width: 80px; height: 80px; border-radius: 8px;
+    object-fit: cover; border: 2px solid rgba(0,255,135,.35);
+  }
+  .sel-count {
+    font-family: var(--mono); font-size: .72rem; color: var(--green);
+    margin-top: .75rem; display: block;
+  }
+
+  /* lightbox */
+  .lightbox {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    background: rgba(4,8,12,.94); backdrop-filter: blur(12px);
+    align-items: center; justify-content: center;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox-img {
+    max-width: 90vw; max-height: 85vh; border-radius: 12px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.6);
+    object-fit: contain;
+    animation: lbIn .25s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes lbIn { from{opacity:0;transform:scale(.92)} to{opacity:1;transform:scale(1)} }
+  .lightbox-close {
+    position: absolute; top: 1.5rem; right: 1.5rem;
+    width: 40px; height: 40px; border-radius: 10px;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+    color: var(--text); font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: none; transition: all .2s;
+  }
+  .lightbox-close:hover { background: rgba(239,68,68,.15); color: #f87171; }
+  .lightbox-caption {
+    position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    font-family: var(--mono); font-size: .75rem; color: var(--muted);
+    background: rgba(4,8,12,.7); padding: .5rem 1rem; border-radius: 100px;
+    backdrop-filter: blur(8px);
+  }
+  .lightbox-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+    color: var(--text); font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: none; transition: all .2s;
+  }
+  .lightbox-nav:hover { background: rgba(0,255,135,.12); border-color: rgba(0,255,135,.3); color: var(--green); }
+  .lightbox-prev { left: 1.5rem; }
+  .lightbox-next { right: 1.5rem; }
+  .lightbox-counter {
+    position: absolute; top: 1.5rem; left: 50%; transform: translateX(-50%);
+    font-family: var(--mono); font-size: .68rem; color: var(--muted);
+    background: rgba(4,8,12,.6); padding: .35rem .85rem; border-radius: 100px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- BACK + EVENT INFO -->
+<div style="margin-bottom:1.75rem;">
+  <a href="{% url 'dashboard_events' %}" style="font-family:var(--mono);font-size:.72rem;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;margin-bottom:1rem;transition:color .2s;"
+     onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='var(--muted)'">
+    ← Back to Events
+  </a>
+  <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+    <div>
+      <div style="font-family:var(--display);font-size:1.2rem;font-weight:800;color:var(--text);">
+        {{ event.title }}
+      </div>
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-top:.2rem;">
+        📅 {{ event.start_dt|date:"M d, Y" }} &nbsp;·&nbsp;
+        📸 {{ photos.count }} photo{{ photos.count|pluralize }}
+      </div>
+    </div>
+    {% if event.is_published %}
+      <span class="badge badge-green" style="margin-left:auto;">Live</span>
+    {% else %}
+      <span class="badge badge-gray" style="margin-left:auto;">Draft</span>
+    {% endif %}
+  </div>
+</div>
+
+
+<!-- ══ UPLOAD SECTION ══ -->
+<div class="section-head">
+  <h2>📤 Upload Photos</h2>
+  <span style="font-family:var(--mono);font-size:.68rem;color:var(--muted);">
+    JPG, PNG, WEBP · Max 5MB each · Multiple at once
+  </span>
+</div>
+
+<form method="post" enctype="multipart/form-data" id="uploadForm">
+  {% csrf_token %}
+
+  <div class="upload-zone" id="dropZone">
+    <input type="file" name="photos" id="photoInput"
+           accept="image/*" multiple>
+    <div class="upload-zone-icon">📸</div>
+    <div class="upload-zone-title">Drop photos here or click to browse</div>
+    <div class="upload-zone-sub">Select multiple photos at once — all will be uploaded together</div>
+    <div class="selected-previews" id="selectedPreviews"></div>
+    <span class="sel-count" id="selCount"></span>
+  </div>
+
+  <div class="form-group" style="margin-top:1rem;max-width:400px;">
+    <label>Caption <span style="color:var(--muted);">(optional — applies to all uploaded photos)</span></label>
+    <input type="text" name="caption" placeholder="e.g. Workshop highlights · Hackathon Day 1">
+  </div>
+
+  <button type="submit" class="btn btn-primary" id="uploadBtn" style="display:none;">
+    📤 Upload <span id="uploadCount">0</span> Photo(s)
+  </button>
+</form>
+
+
+<!-- ══ PHOTO GALLERY ══ -->
+{% if photos %}
+<div style="margin-top:2.5rem;">
+  <div class="section-head">
+    <h2>🖼️ Gallery ({{ photos.count }} photos)</h2>
+    <span style="font-family:var(--mono);font-size:.68rem;color:var(--muted);">
+      Click any photo to view fullscreen
+    </span>
+  </div>
+
+  <div class="photo-grid">
+    {% for photo in photos %}
+    <div class="photo-card">
+      <img src="{{ photo.image.url }}"
+           alt="{{ photo.caption|default:event.title }}"
+           onclick="openLightbox({{ forloop.counter0 }})"
+           style="cursor:none;">
+      <div class="photo-card-body">
+        <div class="photo-caption">
+          {{ photo.caption|default:"—" }}
+        </div>
+        <div class="photo-meta">
+          📅 {{ photo.uploaded_at|date:"M d, Y" }}
+        </div>
+        <a href="{% url 'dashboard_event_photo_delete' event.pk photo.pk %}"
+           class="photo-delete-btn"
+           onclick="return confirm('Delete this photo permanently?')">
+          🗑️ Delete Photo
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% else %}
+<div style="text-align:center;padding:4rem 2rem;background:rgba(14,21,32,.6);border:1px dashed rgba(255,255,255,.08);border-radius:14px;margin-top:2rem;">
+  <p style="font-size:3rem;margin-bottom:.75rem;">📷</p>
+  <p style="font-family:var(--mono);font-size:.8rem;color:var(--muted);">No photos uploaded yet for this event.</p>
+  <p style="font-family:var(--mono);font-size:.7rem;color:#3a4a58;margin-top:.35rem;">Use the upload area above to add photos.</p>
+</div>
+{% endif %}
+
+
+<!-- ══ LIGHTBOX ══ -->
+{% if photos %}
+<div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <div class="lightbox-counter" id="lbCounter">1 / {{ photos.count }}</div>
+  <button class="lightbox-nav lightbox-prev" onclick="lbPrev()">‹</button>
+  <img class="lightbox-img" id="lbImg" src="" alt="">
+  <button class="lightbox-nav lightbox-next" onclick="lbNext()">›</button>
+  <div class="lightbox-caption" id="lbCaption"></div>
+</div>
+
+<script>
+const PHOTOS = [
+  {% for photo in photos %}
+  { src: "{{ photo.image.url }}", caption: "{{ photo.caption|default:''|escapejs }}" }{% if not forloop.last %},{% endif %}
+  {% endfor %}
+];
+
+let lbIndex = 0;
+
+function openLightbox(i) {
+  lbIndex = i;
+  updateLightbox();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function lbPrev() { lbIndex = (lbIndex - 1 + PHOTOS.length) % PHOTOS.length; updateLightbox(); }
+function lbNext() { lbIndex = (lbIndex + 1) % PHOTOS.length; updateLightbox(); }
+function updateLightbox() {
+  const p = PHOTOS[lbIndex];
+  const img = document.getElementById('lbImg');
+  img.style.opacity = '0';
+  setTimeout(() => { img.src = p.src; img.style.opacity = '1'; img.style.transition = 'opacity .25s'; }, 80);
+  document.getElementById('lbCaption').textContent = p.caption || '';
+  document.getElementById('lbCounter').textContent = (lbIndex + 1) + ' / ' + PHOTOS.length;
+}
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'ArrowLeft')  lbPrev();
+  if (e.key === 'ArrowRight') lbNext();
+  if (e.key === 'Escape')     closeLightbox();
+});
+</script>
+{% endif %}
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/* ── UPLOAD DROP ZONE ── */
+const dropZone   = document.getElementById('dropZone');
+const photoInput = document.getElementById('photoInput');
+const previews   = document.getElementById('selectedPreviews');
+const selCount   = document.getElementById('selCount');
+const uploadBtn  = document.getElementById('uploadBtn');
+const uploadCount= document.getElementById('uploadCount');
+
+photoInput.addEventListener('change', showPreviews);
+
+function showPreviews() {
+  previews.innerHTML = '';
+  const files = photoInput.files;
+  if (!files.length) {
+    selCount.textContent = '';
+    uploadBtn.style.display = 'none';
+    return;
+  }
+  Array.from(files).slice(0, 8).forEach(file => {
+    const img = document.createElement('img');
+    img.className = 'sel-prev';
+    img.src = URL.createObjectURL(file);
+    previews.appendChild(img);
+  });
+  if (files.length > 8) {
+    const more = document.createElement('div');
+    more.style.cssText = 'width:80px;height:80px;border-radius:8px;background:rgba(0,255,135,.1);border:2px solid rgba(0,255,135,.35);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.75rem;color:var(--green);font-weight:700;';
+    more.textContent = '+' + (files.length - 8);
+    previews.appendChild(more);
+  }
+  selCount.textContent = files.length + ' photo' + (files.length > 1 ? 's' : '') + ' selected';
+  uploadCount.textContent = files.length;
+  uploadBtn.style.display = 'inline-flex';
+}
+
+/* drag and drop */
+['dragenter','dragover'].forEach(ev => {
+  dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+});
+['dragleave','drop'].forEach(ev => {
+  dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('drag-over'); });
+});
+dropZone.addEventListener('drop', e => {
+  const dt = e.dataTransfer;
+  if (dt.files.length) {
+    photoInput.files = dt.files;
+    showPreviews();
+  }
+});
+</script>
+{% endblock %}

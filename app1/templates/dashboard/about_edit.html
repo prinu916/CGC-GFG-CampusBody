@@ -1,0 +1,173 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Edit About Page — Dashboard{% endblock %}
+{% block page_title %}Edit About Page{% endblock %}
+
+{% block content %}
+
+<form method="post">
+  {% csrf_token %}
+
+  <!-- ── HERO SECTION ── -->
+  <div class="form-card" style="margin-bottom:1.5rem;">
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--green);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1.25rem;">
+      🌟 Hero Section
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Hero Tagline <span style="color:var(--muted);">(small label above heading)</span></label>
+        <input type="text" name="hero_tagline"
+               value="{{ about.hero_tagline }}"
+               placeholder="About Us">
+      </div>
+      <div class="form-group">
+        <label>Hero Heading *</label>
+        <input type="text" name="hero_heading"
+               value="{{ about.hero_heading }}"
+               placeholder="We Are GFG CGC Chapter" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Hero Subtext <span style="color:var(--muted);">(paragraph shown below heading)</span></label>
+      <textarea name="hero_subtext" rows="3"
+                placeholder="A brief intro paragraph…">{{ about.hero_subtext }}</textarea>
+    </div>
+  </div>
+
+  <!-- ── OUR STORY ── -->
+  <div class="form-card" style="margin-bottom:1.5rem;">
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--green);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1.25rem;">
+      📖 Our Story
+    </div>
+    <div class="form-group">
+      <label>Section Heading</label>
+      <input type="text" name="story_heading"
+             value="{{ about.story_heading }}"
+             placeholder="Our Story">
+    </div>
+    <div class="form-group">
+      <label>
+        Story Body
+        <span style="color:var(--muted);">(separate paragraphs with a blank line)</span>
+      </label>
+      <textarea name="story_body" rows="8"
+                placeholder="Tell the story of how GFG CGC chapter started…&#10;&#10;Second paragraph goes here…">{{ about.story_body }}</textarea>
+    </div>
+  </div>
+
+  <!-- ── VISION & MISSION ── -->
+  <div class="form-card" style="margin-bottom:1.5rem;">
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--green);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1.25rem;">
+      🎯 Vision & Mission
+    </div>
+    <div class="form-group">
+      <label>Section Heading</label>
+      <input type="text" name="vision_heading"
+             value="{{ about.vision_heading }}"
+             placeholder="Vision & Mission">
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>🔭 Vision Statement</label>
+        <textarea name="vision_text" rows="5"
+                  placeholder="Our long-term vision for the chapter…">{{ about.vision_text }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>🎯 Mission Statement</label>
+        <textarea name="mission_text" rows="5"
+                  placeholder="What we do every day to achieve our vision…">{{ about.mission_text }}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CONTACT INFO ── -->
+  <div class="form-card" style="margin-bottom:1.5rem;">
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--green);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1.25rem;">
+      📍 Contact Information
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>📧 Email Address</label>
+        <input type="email" name="contact_email"
+               value="{{ about.contact_email }}"
+               placeholder="gfg@cgc.ac.in">
+      </div>
+      <div class="form-group">
+        <label>📞 Phone Number</label>
+        <input type="text" name="contact_phone"
+               value="{{ about.contact_phone }}"
+               placeholder="+91 98765 43210">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>📍 Address</label>
+      <textarea name="contact_address" rows="3"
+                placeholder="CGC Landran, Mohali, Punjab — 140307">{{ about.contact_address }}</textarea>
+    </div>
+    <div class="form-group">
+      <label>
+        🗺️ Google Maps Embed URL
+        <span style="color:var(--muted);">(optional — Google Maps → Share → Embed → copy src URL)</span>
+      </label>
+      <input type="url" name="contact_map_url"
+             value="{{ about.contact_map_url }}"
+             placeholder="https://www.google.com/maps/embed?pb=…">
+    </div>
+  </div>
+
+  <!-- ── SOCIAL LINKS ── -->
+  <div class="form-card" style="margin-bottom:1.5rem;">
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--green);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1.25rem;">
+      🔗 Chapter Social Links
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>📸 Instagram</label>
+        <input type="url" name="social_instagram"
+               value="{{ about.social_instagram }}"
+               placeholder="https://instagram.com/gfgcgc">
+      </div>
+      <div class="form-group">
+        <label>💼 LinkedIn</label>
+        <input type="url" name="social_linkedin"
+               value="{{ about.social_linkedin }}"
+               placeholder="https://linkedin.com/company/gfgcgc">
+      </div>
+      <div class="form-group">
+        <label>𝕏 Twitter / X</label>
+        <input type="url" name="social_twitter"
+               value="{{ about.social_twitter }}"
+               placeholder="https://twitter.com/gfgcgc">
+      </div>
+      <div class="form-group">
+        <label>⌥ GitHub</label>
+        <input type="url" name="social_github"
+               value="{{ about.social_github }}"
+               placeholder="https://github.com/gfgcgc">
+      </div>
+      <div class="form-group">
+        <label>▶ YouTube</label>
+        <input type="url" name="social_youtube"
+               value="{{ about.social_youtube }}"
+               placeholder="https://youtube.com/@gfgcgc">
+      </div>
+      <div class="form-group">
+        <label>💬 Discord</label>
+        <input type="url" name="social_discord"
+               value="{{ about.social_discord }}"
+               placeholder="https://discord.gg/invite-link">
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div style="display:flex;gap:1rem;align-items:center;">
+    <button type="submit" class="btn btn-primary">💾 Save All Changes</button>
+    <a href="{% url 'dashboard_about' %}" class="btn btn-outline">Cancel</a>
+    <a href="{% url 'about_page' %}" target="_blank"
+       class="btn btn-outline" style="margin-left:auto;">
+      View About Page ↗
+    </a>
+  </div>
+
+</form>
+{% endblock %}

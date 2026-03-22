@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Blog — GFG CGC{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📝 Blog</h1>
+  <p>Tutorials, tips, and community articles</p>
+</div>
+
+<!-- Filters -->
+<div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem;">
+  <div>
+    <strong style="font-size:0.85rem; color:#6b7280;">CATEGORY</strong><br>
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.4rem;">
+      <a href="{% url 'blog_list' %}" class="badge {% if not selected_category %}badge-green{% else %}badge-gray{% endif %}">All</a>
+      {% for cat in categories %}
+        <a href="?category={{ cat.slug }}" class="badge {% if selected_category == cat.slug %}badge-green{% else %}badge-gray{% endif %}">{{ cat.name }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  {% if tags %}
+  <div>
+    <strong style="font-size:0.85rem; color:#6b7280;">TAGS</strong><br>
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.4rem;">
+      {% for tag in tags %}
+        <a href="?tag={{ tag.slug }}" class="badge {% if selected_tag == tag.slug %}badge-blue{% else %}badge-gray{% endif %}"># {{ tag.name }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Posts grid -->
+{% if posts %}
+  <div class="grid-3">
+    {% for post in posts %}
+    <div class="card">
+      {% if post.cover_image %}
+        <img src="{{ post.cover_image.url }}" alt="{{ post.title }}" style="width:100%;height:180px;object-fit:cover;">
+      {% else %}
+        <div style="width:100%;height:180px;background:linear-gradient(135deg,#1a1a2e,#2F8D46);display:flex;align-items:center;justify-content:center;font-size:3rem;">💻</div>
+      {% endif %}
+      <div class="card-body">
+        <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;flex-wrap:wrap;">
+          {% if post.category %}<span class="badge badge-green">{{ post.category.name }}</span>{% endif %}
+          {% for tag in post.tags.all %}<span class="badge badge-gray"># {{ tag.name }}</span>{% endfor %}
+        </div>
+        <h3 style="margin-bottom:0.5rem;font-size:1.05rem;line-height:1.4;">
+          <a href="{{ post.get_absolute_url }}" style="text-decoration:none;color:inherit;">{{ post.title }}</a>
+        </h3>
+        <p style="color:#6b7280;font-size:0.85rem;margin-bottom:1rem;">{{ post.excerpt|default:post.content|truncatewords:20 }}</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.8rem;color:#9ca3af;">by {{ post.author.get_full_name|default:post.author.username }}</span>
+          <span style="font-size:0.8rem;color:#9ca3af;">{{ post.created_at|date:"M d, Y" }}</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div style="text-align:center;padding:4rem;color:#9ca3af;">
+    <p style="font-size:3rem;">📭</p>
+    <p>No posts found. Check back soon!</p>
+  </div>
+{% endif %}
+{% endblock %}

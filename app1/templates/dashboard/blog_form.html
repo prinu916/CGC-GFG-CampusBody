@@ -1,0 +1,115 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}{{ action }} Post — Dashboard{% endblock %}
+{% block page_title %}{{ action }} Blog Post{% endblock %}
+
+{% block content %}
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  <div class="form-card">
+
+    <!-- Row 1: Title full width -->
+    <div class="form-group">
+      <label>Post Title *</label>
+      <input type="text" name="title"
+             value="{{ post.title|default:'' }}"
+             placeholder="Write a compelling title…" required>
+    </div>
+
+    <!-- Row 2: Category + Status -->
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Category</label>
+        <select name="category">
+          <option value="">— No Category —</option>
+          {% for cat in categories %}
+            <option value="{{ cat.pk }}"
+              {% if post.category_id == cat.pk %}selected{% endif %}>
+              {{ cat.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select name="status">
+          <option value="draft"
+            {% if post.status == 'draft' or not post %}selected{% endif %}>
+            Draft (not visible on site)
+          </option>
+          <option value="published"
+            {% if post.status == 'published' %}selected{% endif %}>
+            Published (visible on site)
+          </option>
+        </select>
+        {% if not role.is_admin %}
+        <small style="color:var(--muted);font-family:var(--mono);font-size:.62rem;margin-top:.3rem;display:block;">
+          ⚠ Only Admins can publish. Your post will be saved as Draft for review.
+        </small>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Row 3: Excerpt -->
+    <div class="form-group">
+      <label>Excerpt <span style="color:var(--muted);">(optional — shown on blog cards)</span></label>
+      <input type="text" name="excerpt"
+             value="{{ post.excerpt|default:'' }}"
+             placeholder="A short 1-2 sentence summary…">
+    </div>
+
+    <!-- Row 4: Content -->
+    <div class="form-group">
+      <label>Content * <span style="color:var(--muted);">(Markdown supported)</span></label>
+      <textarea name="content" rows="16"
+                placeholder="# Your Heading&#10;&#10;Write your content here. Markdown is supported.&#10;&#10;**Bold**, *italic*, `code`, ## headings, - lists…" required>{{ post.content|default:'' }}</textarea>
+    </div>
+
+    <!-- Row 5: Tags + Cover Image -->
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Tags <span style="color:var(--muted);">(hold Ctrl/Cmd for multiple)</span></label>
+        <select name="tags" multiple style="height:110px;">
+          {% for tag in tags %}
+            <option value="{{ tag.pk }}"
+              {% if tag in post.tags.all %}selected{% endif %}>
+              # {{ tag.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Cover Image</label>
+        <input type="file" name="cover_image" accept="image/*"
+               style="padding:.5rem .75rem;background:rgba(255,255,255,.03);">
+        {% if post.cover_image %}
+          <div style="margin-top:.75rem;">
+            <img src="{{ post.cover_image.url }}"
+                 style="height:90px;border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,.07);">
+            <p style="font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-top:.35rem;">
+              Current cover — upload new to replace
+            </p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div><!-- /form-card -->
+
+  <!-- Actions -->
+  <div style="display:flex;gap:1rem;align-items:center;margin-top:1.5rem;">
+    <button type="submit" class="btn btn-primary">
+      {% if action == 'Create' %}✦ Create Post{% else %}💾 Save Changes{% endif %}
+    </button>
+    <a href="{% url 'dashboard_blogs' %}" class="btn btn-outline">Cancel</a>
+    {% if post %}
+    <a href="{{ post.get_absolute_url }}" target="_blank"
+       class="btn btn-outline" style="margin-left:auto;">
+      View on Site ↗
+    </a>
+    {% endif %}
+  </div>
+
+</form>
+{% endblock %}

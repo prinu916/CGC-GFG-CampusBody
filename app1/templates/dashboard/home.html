@@ -1,0 +1,167 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Analytics — Dashboard{% endblock %}
+{% block page_title %}Analytics Overview{% endblock %}
+
+{% block content %}
+
+<!-- STAT CARDS -->
+<div class="stat-cards">
+  {% if role.can_manage_blog %}
+  <div class="stat-card" style="--card-color:#00ff87;">
+    <div class="stat-card::before" style="background:linear-gradient(90deg,transparent,#00ff87,transparent);"></div>
+    <span class="stat-card-icon">📝</span>
+    <div class="stat-card-num" style="color:#00ff87;">{{ total_posts }}</div>
+    <div class="stat-card-lbl">Total Posts</div>
+    <div style="display:flex;gap:.5rem;margin-top:.75rem;">
+      <span class="badge badge-green">{{ published_posts }} published</span>
+      <span class="badge badge-gray">{{ draft_posts }} drafts</span>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if role.can_manage_events %}
+  <div class="stat-card">
+    <span class="stat-card-icon">🗓️</span>
+    <div class="stat-card-num" style="color:#60a5fa;">{{ total_events }}</div>
+    <div class="stat-card-lbl">Total Events</div>
+    <div style="margin-top:.75rem;">
+      <span class="badge badge-blue">{{ upcoming_events }} upcoming</span>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if role.can_manage_team %}
+  <div class="stat-card">
+    <span class="stat-card-icon">👥</span>
+    <div class="stat-card-num" style="color:#a78bfa;">{{ total_members }}</div>
+    <div class="stat-card-lbl">Active Members</div>
+  </div>
+  {% endif %}
+
+  {% if role.can_manage_blog %}
+  <div class="stat-card">
+    <span class="stat-card-icon">💬</span>
+    <div class="stat-card-num" style="color:#fb923c;">{{ total_comments }}</div>
+    <div class="stat-card-lbl">Comments</div>
+  </div>
+  {% endif %}
+
+  <div class="stat-card">
+    <span class="stat-card-icon">✅</span>
+    <div class="stat-card-num" style="color:#f8b400;">{{ total_rsvps }}</div>
+    <div class="stat-card-lbl">Event RSVPs</div>
+  </div>
+
+  <div class="stat-card">
+    <span class="stat-card-icon">👤</span>
+    <div class="stat-card-num" style="color:#00ff87;">{{ stats.members }}+</div>
+    <div class="stat-card-lbl">Site Members</div>
+  </div>
+</div>
+
+<!-- BOTTOM GRID -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;flex-wrap:wrap;">
+
+  <!-- Recent Posts -->
+  {% if role.can_manage_blog %}
+  <div>
+    <div class="section-head">
+      <h2>Recent Posts</h2>
+      <a href="{% url 'dashboard_blog_create' %}" class="btn btn-primary btn-sm">+ New Post</a>
+    </div>
+    <div class="dash-table-wrap">
+      <table class="dash-table">
+        <thead><tr><th>Title</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for post in recent_posts %}
+          <tr>
+            <td>
+              <a href="{% url 'dashboard_blog_edit' post.pk %}" style="color:var(--text);text-decoration:none;font-weight:500;">
+                {{ post.title|truncatechars:36 }}
+              </a>
+            </td>
+            <td>
+              {% if post.status == 'published' %}
+                <span class="badge badge-green">Published</span>
+              {% else %}
+                <span class="badge badge-gray">Draft</span>
+              {% endif %}
+            </td>
+            <td style="font-family:var(--mono);font-size:.72rem;color:var(--muted);">
+              {{ post.created_at|date:"M d" }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:2rem;font-family:var(--mono);font-size:.78rem;">No posts yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Recent Events -->
+  {% if role.can_manage_events %}
+  <div>
+    <div class="section-head">
+      <h2>Recent Events</h2>
+      <a href="{% url 'dashboard_event_create' %}" class="btn btn-primary btn-sm">+ New Event</a>
+    </div>
+    <div class="dash-table-wrap">
+      <table class="dash-table">
+        <thead><tr><th>Title</th><th>Mode</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for event in recent_events %}
+          <tr>
+            <td>
+              <a href="{% url 'dashboard_event_edit' event.pk %}" style="color:var(--text);text-decoration:none;font-weight:500;">
+                {{ event.title|truncatechars:30 }}
+              </a>
+            </td>
+            <td>
+              {% if event.mode == 'online' %}<span class="badge badge-blue">Online</span>
+              {% elif event.mode == 'offline' %}<span class="badge badge-orange">Offline</span>
+              {% else %}<span class="badge badge-green">Hybrid</span>{% endif %}
+            </td>
+            <td style="font-family:var(--mono);font-size:.72rem;color:var(--muted);">
+              {{ event.start_dt|date:"M d" }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:2rem;font-family:var(--mono);font-size:.78rem;">No events yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Recent Comments -->
+{% if role.can_manage_blog and recent_comments %}
+<div style="margin-top:1.5rem;">
+  <div class="section-head">
+    <h2>Recent Comments</h2>
+    <a href="{% url 'dashboard_comments' %}" class="btn btn-outline btn-sm">View All</a>
+  </div>
+  <div class="dash-table-wrap">
+    <table class="dash-table">
+      <thead><tr><th>Author</th><th>Post</th><th>Comment</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody>
+        {% for c in recent_comments %}
+        <tr>
+          <td style="font-weight:500;">{{ c.author.username }}</td>
+          <td style="color:var(--muted);font-size:.82rem;">{{ c.post.title|truncatechars:24 }}</td>
+          <td style="color:var(--muted);font-size:.82rem;">{{ c.body|truncatechars:40 }}</td>
+          <td>{% if c.is_active %}<span class="badge badge-green">Active</span>{% else %}<span class="badge badge-red">Hidden</span>{% endif %}</td>
+          <td style="font-family:var(--mono);font-size:.7rem;color:var(--muted);">{{ c.created_at|date:"M d" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

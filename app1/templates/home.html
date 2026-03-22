@@ -1,0 +1,670 @@
+{% extends "base.html" %}
+{% block title %}GFG CGC Chapter — Home{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ════════════════════════════════════════════
+   SECTION COMMONS
+════════════════════════════════════════════ */
+.sec     { max-width:1200px; margin:0 auto; padding:5.5rem 1.5rem; }
+.bg-alt  { background:rgba(8,15,20,.6); border-top:1px solid rgba(255,255,255,.05); border-bottom:1px solid rgba(255,255,255,.05); }
+.lbl  { font-family:'DM Mono',monospace; font-size:.68rem; color:#00ff87; letter-spacing:.18em; text-transform:uppercase; margin-bottom:.7rem; }
+.ttl  { font-family:'Syne',sans-serif; font-size:clamp(1.8rem,4vw,2.8rem); font-weight:800; color:#dde6f0; line-height:1.12; margin-bottom:1rem; }
+.sub  { font-family:'DM Sans',sans-serif; font-weight:300; color:#7d8590; font-size:1rem; line-height:1.75; max-width:520px; }
+.g    { color:#00ff87; }
+.gold { color:#f8b400; }
+.row-between { display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem; margin-bottom:2.5rem; }
+
+/* ════════════════════════════════════════════
+   1. HERO
+════════════════════════════════════════════ */
+.hero {
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  position:relative; overflow:hidden; padding:7rem 1.5rem 5rem;
+}
+.hero-grid-bg {
+  position:absolute; inset:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,255,135,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,135,.03) 1px,transparent 1px);
+  background-size:55px 55px;
+  animation:bgScroll 25s linear infinite;
+}
+@keyframes bgScroll{ to{ transform:translateY(55px); } }
+.hero-glow {
+  position:absolute; pointer-events:none;
+  width:750px; height:750px; border-radius:50%;
+  background:radial-gradient(circle,rgba(0,255,135,.1) 0%,transparent 65%);
+  top:50%; left:50%; transform:translate(-50%,-55%);
+}
+.hero-inner {
+  position:relative; text-align:center; max-width:880px;
+  animation:fadeUp 1s ease both;
+}
+@keyframes fadeUp{ from{opacity:0;transform:translateY(32px)} to{opacity:1;transform:translateY(0)} }
+.hero-chip {
+  display:inline-flex; align-items:center; gap:.6rem;
+  background:rgba(0,255,135,.07); border:1px solid rgba(0,255,135,.22);
+  color:#00ff87; font-family:'DM Mono',monospace;
+  font-size:.72rem; letter-spacing:.1em;
+  padding:.42rem 1.1rem; border-radius:100px; margin-bottom:2.2rem;
+  animation:fadeUp 1s .1s ease both;
+}
+.hero-chip-dot {
+  width:7px; height:7px; border-radius:50%; background:#00ff87;
+  animation:chipP 1.8s ease infinite;
+}
+@keyframes chipP{
+  0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,255,135,.5)}
+  50%{opacity:.4;box-shadow:0 0 0 5px rgba(0,255,135,0)}
+}
+.hero h1 {
+  font-family:'Syne',sans-serif;
+  font-size:clamp(3.2rem,9vw,6.5rem);
+  font-weight:800; line-height:1.03; color:#dde6f0; margin-bottom:1.6rem;
+  animation:fadeUp 1s .18s ease both;
+}
+.hero h1 em  { font-style:normal; color:#00ff87; }
+.hero h1 .dim{ color:#3a4a58; }
+.hero-p {
+  font-family:'DM Sans',sans-serif; font-size:1.12rem; font-weight:300;
+  color:#7d8590; max-width:540px; margin:0 auto 2.8rem; line-height:1.78;
+  animation:fadeUp 1s .26s ease both;
+}
+.hero-btns {
+  display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;
+  animation:fadeUp 1s .34s ease both;
+}
+.btn-hp {
+  display:inline-flex; align-items:center; gap:.5rem;
+  background:#00ff87; color:#04080c;
+  font-family:'Syne',sans-serif; font-weight:700; font-size:.92rem;
+  padding:.85rem 1.9rem; border-radius:9px; text-decoration:none;
+  transition:all .22s; box-shadow:0 0 28px rgba(0,255,135,.28);
+}
+.btn-hp:hover{ transform:translateY(-2px); box-shadow:0 0 48px rgba(0,255,135,.45); }
+.btn-hg {
+  display:inline-flex; align-items:center; gap:.5rem;
+  background:transparent; color:#dde6f0;
+  font-family:'Syne',sans-serif; font-weight:600; font-size:.92rem;
+  padding:.85rem 1.9rem; border-radius:9px; text-decoration:none;
+  border:1px solid rgba(255,255,255,.1); transition:all .22s;
+}
+.btn-hg:hover{ border-color:rgba(0,255,135,.35); color:#00ff87; background:rgba(0,255,135,.05); }
+.scroll-cue {
+  position:absolute; bottom:2.5rem; left:50%; transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:.5rem;
+  color:#3a4a58; font-family:'DM Mono',monospace; font-size:.62rem; letter-spacing:.12em;
+  animation:fadeUp 1s .7s ease both;
+}
+.scroll-line{ width:1px; height:38px; background:linear-gradient(to bottom,#00ff87,transparent); animation:scrollA 2s ease infinite; }
+@keyframes scrollA{ 0%,100%{opacity:.25} 50%{opacity:1} }
+
+/* ════════════════════════════════════════════
+   2. STATS BAR
+════════════════════════════════════════════ */
+.stats-bar {
+  background:rgba(14,21,32,.82); backdrop-filter:blur(16px);
+  border-top:1px solid rgba(255,255,255,.06); border-bottom:1px solid rgba(255,255,255,.06);
+}
+.stats-inner { max-width:1200px; margin:0 auto; display:flex; flex-wrap:wrap; }
+.stat-item {
+  flex:1; min-width:130px; text-align:center;
+  padding:1.75rem 1rem; border-right:1px solid rgba(255,255,255,.05);
+}
+.stat-item:last-child{ border-right:none; }
+.stat-num { font-family:'Syne',sans-serif; font-size:2.5rem; font-weight:800; color:#00ff87; line-height:1; }
+.stat-lbl { font-family:'DM Mono',monospace; font-size:.66rem; color:#3a4a58; letter-spacing:.1em; text-transform:uppercase; margin-top:.35rem; }
+
+/* ════════════════════════════════════════════
+   3. ABOUT
+════════════════════════════════════════════ */
+.about-grid { display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:center; }
+@media(max-width:768px){ .about-grid{ grid-template-columns:1fr; gap:2.5rem; } }
+.about-code {
+  background:rgba(8,15,20,.9); border:1px solid rgba(255,255,255,.07); border-radius:14px; overflow:hidden;
+}
+.code-titlebar {
+  background:rgba(255,255,255,.03); border-bottom:1px solid rgba(255,255,255,.06);
+  padding:.7rem 1rem; display:flex; align-items:center; gap:.45rem;
+}
+.code-dot{ width:10px; height:10px; border-radius:50%; }
+.code-fn { color:#00ff87; } .code-kw { color:#ff7b72; }
+.code-st { color:#a5d6ff; } .code-cm { color:#2a3a4a; } .code-nm { color:#d2a8ff; }
+.code-body { padding:1.4rem 1.5rem; font-family:'DM Mono',monospace; font-size:.8rem; line-height:1.9; color:#7d8590; }
+.about-pills { display:flex; flex-wrap:wrap; gap:.55rem; margin-top:2rem; }
+.pill {
+  font-family:'DM Mono',monospace; font-size:.72rem; color:#00ff87;
+  background:rgba(0,255,135,.07); border:1px solid rgba(0,255,135,.18);
+  padding:.32rem .85rem; border-radius:100px; transition:all .2s;
+}
+.pill:hover{ background:rgba(0,255,135,.14); }
+
+/* ════════════════════════════════════════════
+   4. WHAT WE DO
+════════════════════════════════════════════ */
+.features-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr)); gap:1.25rem; margin-top:2.5rem; }
+.feat-card {
+  background:rgba(14,21,32,.75); backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:1.75rem;
+  transition:transform .25s, border-color .25s, box-shadow .25s;
+}
+.feat-card:hover{ transform:translateY(-5px); border-color:rgba(0,255,135,.2); box-shadow:0 16px 36px rgba(0,0,0,.4); }
+.feat-icon{ font-size:2rem; margin-bottom:1rem; display:block; }
+.feat-card h3 { font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; color:#dde6f0; margin-bottom:.55rem; }
+.feat-card p  { font-family:'DM Sans',sans-serif; font-weight:300; color:#7d8590; font-size:.875rem; line-height:1.65; }
+
+/* ════════════════════════════════════════════
+   5. CAMPUS MANTRI
+════════════════════════════════════════════ */
+.mantri-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.75rem; margin-top:2.5rem; }
+.mantri-card {
+  background:rgba(14,21,32,.78); backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.07); border-radius:20px; overflow:hidden;
+  transition:transform .3s, box-shadow .3s, border-color .3s; position:relative;
+}
+.mantri-card:hover{ transform:translateY(-8px); box-shadow:0 28px 56px rgba(0,0,0,.55),0 0 0 1px rgba(248,180,0,.2); border-color:rgba(248,180,0,.25); }
+.mantri-bar { height:3px; background:linear-gradient(90deg,#f8b400,#ff6b00,#f8b400); background-size:200% 100%; animation:goldShimmer 3s linear infinite; }
+@keyframes goldShimmer{ 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+.mantri-crown { position:absolute; top:1.1rem; right:1.1rem; background:linear-gradient(135deg,#f8b400,#e65c00); color:#04080c; font-family:'DM Mono',monospace; font-size:.6rem; font-weight:600; letter-spacing:.07em; text-transform:uppercase; padding:.26rem .65rem; border-radius:100px; }
+.mantri-top { padding:2rem 1.75rem 1.25rem; display:flex; flex-direction:column; align-items:center; text-align:center; }
+.mantri-av-wrap { position:relative; margin-bottom:1.25rem; }
+.mantri-av { width:96px; height:96px; border-radius:50%; object-fit:cover; border:3px solid rgba(248,180,0,.35); box-shadow:0 0 28px rgba(248,180,0,.18); }
+.mantri-av-fb {
+  width:96px; height:96px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Syne',sans-serif; font-size:1.75rem; font-weight:800; color:#04080c;
+  background:linear-gradient(135deg,#f8b400,#e65c00);
+  border:3px solid rgba(248,180,0,.35); box-shadow:0 0 28px rgba(248,180,0,.18);
+}
+.mantri-av-wrap::after { content:'👑'; position:absolute; bottom:2px; right:2px; font-size:1rem; filter:drop-shadow(0 1px 3px rgba(0,0,0,.6)); }
+.mantri-name { font-family:'Syne',sans-serif; font-size:1.15rem; font-weight:800; color:#dde6f0; margin-bottom:.25rem; }
+.mantri-title-lbl { font-family:'DM Mono',monospace; font-size:.68rem; color:#f8b400; letter-spacing:.1em; text-transform:uppercase; margin-bottom:.5rem; }
+.mantri-meta { font-family:'DM Sans',sans-serif; font-size:.78rem; color:#7d8590; font-weight:300; margin-bottom:.85rem; display:flex; gap:.75rem; justify-content:center; flex-wrap:wrap; }
+.mantri-tagline { font-family:'DM Sans',sans-serif; font-style:italic; font-size:.875rem; color:#6a7a85; line-height:1.65; padding:0 .5rem; }
+.mantri-sep { height:1px; margin:0 1.75rem; background:linear-gradient(90deg,transparent,rgba(248,180,0,.18),transparent); }
+.mantri-bio { padding:1.1rem 1.75rem; font-family:'DM Sans',sans-serif; font-size:.85rem; color:#7a8f9a; font-weight:300; line-height:1.7; }
+.mantri-achv { padding:0 1.75rem 1.25rem; }
+.mantri-achv-lbl { font-family:'DM Mono',monospace; font-size:.63rem; color:#f8b400; letter-spacing:.12em; text-transform:uppercase; margin-bottom:.6rem; }
+.mantri-achv-item { display:flex; align-items:flex-start; gap:.5rem; font-family:'DM Sans',sans-serif; font-size:.82rem; color:#7d8590; font-weight:300; line-height:1.5; margin-bottom:.4rem; }
+.mantri-achv-item::before{ content:'▸'; color:#f8b400; font-size:.68rem; margin-top:.2rem; flex-shrink:0; }
+.mantri-socials { display:flex; gap:.45rem; justify-content:center; padding:1rem 1.75rem 1.5rem; flex-wrap:wrap; }
+.m-soc {
+  width:34px; height:34px; border-radius:8px;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+  display:flex; align-items:center; justify-content:center;
+  text-decoration:none; color:#7d8590; font-family:'DM Mono',monospace; font-size:.7rem; font-weight:600;
+  transition:all .2s;
+}
+.m-soc svg{ width:14px; height:14px; }
+.m-soc:hover{ border-color:rgba(248,180,0,.4); color:#f8b400; background:rgba(248,180,0,.07); transform:translateY(-2px); }
+
+/* ════════════════════════════════════════════
+   6. BLOG PREVIEW
+════════════════════════════════════════════ */
+.blog-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.5rem; margin-top:2.5rem; }
+.blog-card {
+  background:rgba(14,21,32,.75); backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.07); border-radius:14px; overflow:hidden;
+  text-decoration:none; color:inherit; display:block;
+  transition:transform .25s, border-color .25s, box-shadow .25s;
+}
+.blog-card:hover{ transform:translateY(-5px); border-color:rgba(0,255,135,.2); box-shadow:0 18px 38px rgba(0,0,0,.45); }
+.blog-thumb {
+  height:162px; overflow:hidden;
+  background:linear-gradient(135deg,#0d1117,#161b22);
+  display:flex; align-items:center; justify-content:center; font-size:3rem;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.blog-thumb img{ width:100%; height:100%; object-fit:cover; }
+.blog-body{ padding:1.3rem; }
+.blog-cat{ font-family:'DM Mono',monospace; font-size:.65rem; color:#00ff87; letter-spacing:.1em; text-transform:uppercase; margin-bottom:.5rem; }
+.blog-card h3 { font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; color:#dde6f0; line-height:1.4; margin-bottom:.5rem; }
+.blog-card p  { font-family:'DM Sans',sans-serif; font-weight:300; color:#7d8590; font-size:.84rem; line-height:1.6; }
+.blog-foot { display:flex; justify-content:space-between; font-family:'DM Mono',monospace; font-size:.68rem; color:#2a3a4a; margin-top:1rem; }
+
+/* ════════════════════════════════════════════
+   7. EVENTS PREVIEW
+════════════════════════════════════════════ */
+.event-rows{ margin-top:2.5rem; display:flex; flex-direction:column; gap:.85rem; }
+.event-row {
+  display:flex; align-items:center; gap:1.25rem;
+  background:rgba(14,21,32,.75); backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.07); border-radius:12px; padding:1.35rem 1.5rem;
+  text-decoration:none; color:inherit; transition:transform .22s, border-color .22s;
+}
+.event-row:hover{ transform:translateX(5px); border-color:rgba(0,255,135,.2); }
+.ev-date { min-width:58px; text-align:center; background:rgba(0,255,135,.07); border:1px solid rgba(0,255,135,.18); border-radius:10px; padding:.6rem .4rem; }
+.ev-day { font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:800; color:#00ff87; line-height:1; }
+.ev-mon { font-family:'DM Mono',monospace; font-size:.62rem; color:#7d8590; letter-spacing:.1em; text-transform:uppercase; }
+.ev-info{ flex:1; }
+.ev-info h3{ font-family:'Syne',sans-serif; font-size:.97rem; font-weight:700; color:#dde6f0; margin-bottom:.25rem; }
+.ev-info p { font-family:'DM Sans',sans-serif; font-weight:300; color:#7d8590; font-size:.82rem; }
+.ev-info p a{ color:#fb923c; text-decoration:none; }
+.ev-info p a:hover{ text-decoration:underline; }
+.ev-badge { font-family:'DM Mono',monospace; font-size:.66rem; padding:.28rem .7rem; border-radius:100px; white-space:nowrap; }
+.ev-online  { background:rgba(59,130,246,.1);  color:#60a5fa; border:1px solid rgba(59,130,246,.22); }
+.ev-offline { background:rgba(249,115,22,.1);  color:#fb923c; border:1px solid rgba(249,115,22,.22); }
+.ev-hybrid  { background:rgba(0,255,135,.07);  color:#00ff87; border:1px solid rgba(0,255,135,.2); }
+
+/* ════════════════════════════════════════════
+   8. CORE TEAM
+════════════════════════════════════════════ */
+.team-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:1.25rem; margin-top:2.5rem; }
+.team-card {
+  background:rgba(14,21,32,.75); backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:1.75rem 1.25rem;
+  text-align:center; transition:transform .25s, border-color .25s;
+}
+.team-card:hover{ transform:translateY(-6px); border-color:rgba(0,255,135,.22); }
+.team-av-wrap { position:relative; width:72px; height:72px; margin:0 auto 1rem; }
+.team-av { width:72px; height:72px; border-radius:50%; object-fit:cover; border:2px solid rgba(0,255,135,.22); display:block; }
+.team-av-fb {
+  width:72px; height:72px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:800; color:#04080c;
+  background:linear-gradient(135deg,#2F8D46,#00ff87);
+}
+.team-av-ring { position:absolute; inset:-3px; border-radius:50%; background:linear-gradient(135deg,#00ff87,#00c9ff); z-index:-1; }
+.team-card h3 { font-family:'Syne',sans-serif; font-size:.95rem; font-weight:700; color:#dde6f0; margin-bottom:.25rem; }
+.team-role-lbl{ font-family:'DM Mono',monospace; font-size:.68rem; color:#00ff87; letter-spacing:.06em; margin-bottom:.3rem; }
+.team-dept-lbl{ font-family:'DM Sans',sans-serif; font-weight:300; color:#7d8590; font-size:.78rem; margin-bottom:.85rem; }
+.team-soc { display:flex; gap:.4rem; justify-content:center; flex-wrap:wrap; }
+.t-soc {
+  width:28px; height:28px; border-radius:6px;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'DM Mono',monospace; font-size:.62rem; font-weight:600;
+  text-decoration:none; color:#7d8590; transition:all .2s;
+}
+.t-soc:hover{ border-color:rgba(0,255,135,.35); color:#00ff87; transform:translateY(-1px); }
+
+/* ════════════════════════════════════════════
+   9. JOIN CTA
+════════════════════════════════════════════ */
+.cta-sec{ text-align:center; padding:7rem 1.5rem; position:relative; overflow:hidden; }
+.cta-sec::before{ content:''; position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at 50% 60%,rgba(0,255,135,.07) 0%,transparent 65%); }
+.cta-sec h2 { font-family:'Syne',sans-serif; font-size:clamp(2rem,5vw,3.4rem); font-weight:800; color:#dde6f0; margin-bottom:1rem; position:relative; }
+.cta-sec p  { font-family:'DM Sans',sans-serif; font-weight:300; color:#7d8590; font-size:1.05rem; max-width:460px; margin:0 auto 2.5rem; line-height:1.75; position:relative; }
+.cta-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; position:relative; }
+
+.btn-va {
+  display:inline-flex; align-items:center; gap:.45rem;
+  background:transparent; color:#dde6f0;
+  font-family:'Syne',sans-serif; font-size:.84rem; font-weight:600;
+  padding:.5rem 1.1rem; border-radius:7px; text-decoration:none;
+  border:1px solid rgba(255,255,255,.1); transition:all .2s; white-space:nowrap;
+}
+.btn-va:hover{ border-color:rgba(0,255,135,.35); color:#00ff87; background:rgba(0,255,135,.05); }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ══ 1. HERO ══ -->
+<div class="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-inner">
+    <div class="hero-chip">
+      <span class="hero-chip-dot"></span>
+      Official Campus Chapter · CGC University
+    </div>
+    <h1>
+      We <em>Code</em>,<br>
+      We <em>Build</em>,<br>
+      <span class="dim">We Grow Together.</span>
+    </h1>
+    <p class="hero-p">
+      GFG CGC is a community of passionate developers, problem-solvers and tech enthusiasts at CGC University — learning in public, shipping real things.
+    </p>
+    <div class="hero-btns">
+      <a href="{% url 'event_list' %}" class="btn-hp">Explore Events →</a>
+      <a href="{% url 'blog_list' %}"  class="btn-hg">Read the Blog</a>
+      <a href="{% url 'team_page' %}"  class="btn-hg">Meet the Team</a>
+    </div>
+  </div>
+  <div class="scroll-cue">
+    <div class="scroll-line"></div>
+    SCROLL
+  </div>
+</div>
+
+
+<!-- ══ 2. STATS BAR ══ -->
+<div class="stats-bar reveal">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <div class="stat-num" data-target="{{ stats.members }}">0+</div>
+      <div class="stat-lbl">Members</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-target="{{ stats.events_hosted }}">0+</div>
+      <div class="stat-lbl">Events Hosted</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-target="{{ stats.articles_published }}">0+</div>
+      <div class="stat-lbl">Articles Published</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-target="{{ stats.years_running }}">0+</div>
+      <div class="stat-lbl">Years Running</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-target="{{ stats.active_teams }}">0+</div>
+      <div class="stat-lbl">Active Teams</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ 3. ABOUT ══ -->
+<div class="sec reveal">
+  <div class="about-grid">
+    <div>
+      <div class="lbl">// about us</div>
+      <h2 class="ttl">Where Students Become <span class="g">Engineers</span></h2>
+      <p class="sub">
+        The GeeksForGeeks CGC Chapter is the official student-run tech community at CGC University. We run workshops, hackathons, coding contests, and mentorship — all built around one idea:
+        <strong style="color:#dde6f0;"> real learning through real building.</strong>
+      </p>
+      <p class="sub" style="margin-top:1rem;">
+        Whether you're in your first semester or already shipping projects, there's a place for you here.
+      </p>
+      <div class="about-pills">
+        <span class="pill">DSA</span>
+        <span class="pill">Web Dev</span>
+        <span class="pill">Open Source</span>
+        <span class="pill">AI / ML</span>
+        <span class="pill">Competitive Prog.</span>
+        <span class="pill">DevOps</span>
+        <span class="pill">System Design</span>
+      </div>
+    </div>
+    <div class="about-code">
+      <div class="code-titlebar">
+        <span class="code-dot" style="background:#ff5f56;"></span>
+        <span class="code-dot" style="background:#ffbd2e;"></span>
+        <span class="code-dot" style="background:#27c93f;"></span>
+        <span style="font-family:'DM Mono',monospace;font-size:.72rem;color:#3a4a58;margin-left:.5rem;">community.py</span>
+      </div>
+      <div class="code-body">
+<span class="code-kw">class</span> <span class="code-fn">GFGChapter</span>:<br>
+&nbsp;&nbsp;name    = <span class="code-st">"GFG CGC"</span><br>
+&nbsp;&nbsp;campus  = <span class="code-st">"CGC University"</span><br>
+&nbsp;&nbsp;members = <span class="code-nm">{{ stats.members }}+</span><br>
+&nbsp;&nbsp;mission = <span class="code-st">"Empower student devs"</span><br>
+<br>
+&nbsp;&nbsp;<span class="code-kw">def</span> <span class="code-fn">what_we_do</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-kw">return</span> [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-st">"Workshops & Bootcamps"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-st">"Hackathons"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-st">"DSA Practice Sessions"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-st">"Tech Talks & Seminars"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-st">"Open Source Projects"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+<br>
+&nbsp;&nbsp;<span class="code-kw">def</span> <span class="code-fn">who_can_join</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-kw">return</span> <span class="code-st">"Anyone passionate 🚀"</span><br>
+<br>
+<span class="code-cm"># → Let's build something great.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ 4. WHAT WE DO ══ -->
+<div class="bg-alt">
+  <div class="sec reveal">
+    <div class="lbl">// what we do</div>
+    <h2 class="ttl">Everything You Need to <span class="g">Level Up</span></h2>
+    <div class="features-grid">
+      <div class="feat-card"><span class="feat-icon">⚡</span><h3>Coding Workshops</h3><p>Hands-on sessions covering DSA, system design, and full-stack dev — led by student mentors who've been there.</p></div>
+      <div class="feat-card"><span class="feat-icon">🏆</span><h3>Hackathons</h3><p>Build real projects under time pressure. Compete, collaborate, win prizes, and build your portfolio all at once.</p></div>
+      <div class="feat-card"><span class="feat-icon">📝</span><h3>Tech Blog</h3><p>Community-authored articles on algorithms, web dev, AI, and interview prep. The best way to learn is to teach.</p></div>
+      <div class="feat-card"><span class="feat-icon">🎯</span><h3>Contest Practice</h3><p>Weekly competitive programming rounds and LeetCode contests to sharpen your problem-solving edge.</p></div>
+      <div class="feat-card"><span class="feat-icon">🤝</span><h3>Mentorship</h3><p>Get paired with seniors who've cracked top companies. Learn the roadmap from those who've already walked it.</p></div>
+      <div class="feat-card"><span class="feat-icon">🌐</span><h3>Open Source</h3><p>Contribute to real projects, grow your GitHub, and collaborate with a global developer community.</p></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ 5. CAMPUS MANTRI ══ -->
+<div class="sec reveal">
+  <div class="lbl">// campus mantri</div>
+  <h2 class="ttl">Our <span class="gold">Campus</span> Mantri</h2>
+  <p class="sub">The official GFG Campus Ambassador bridging students with the GeeksForGeeks ecosystem.</p>
+
+  <div class="mantri-grid">
+    {% for m in campus_mantris %}
+    <div class="mantri-card">
+      <div class="mantri-bar"></div>
+      <div class="mantri-crown">👑 Campus Mantri</div>
+      <div class="mantri-top">
+        <div class="mantri-av-wrap">
+          {% if m.photo %}<img src="{{ m.photo.url }}" alt="{{ m.name }}" class="mantri-av">
+          {% else %}<div class="mantri-av-fb">{{ m.get_initials }}</div>{% endif %}
+        </div>
+        <div class="mantri-name">{{ m.name }}</div>
+        <div class="mantri-title-lbl">{{ m.title }}</div>
+        <div class="mantri-meta">
+          {% if m.branch %}<span>🎓 {{ m.branch }}</span>{% endif %}
+          {% if m.year   %}<span>📅 {{ m.year }}</span>{% endif %}
+        </div>
+        {% if m.tagline %}<div class="mantri-tagline">"{{ m.tagline }}"</div>{% endif %}
+      </div>
+      <div class="mantri-sep"></div>
+      {% if m.bio %}<div class="mantri-bio">{{ m.bio }}</div>{% endif %}
+      {% if m.achievements %}
+      <div class="mantri-achv">
+        <div class="mantri-achv-lbl">✦ Highlights</div>
+        {% for item in m.get_achievements_list %}
+          <div class="mantri-achv-item">{{ item }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <div class="mantri-socials">
+        {% if m.linkedin %}<a href="{{ m.linkedin }}" target="_blank" class="m-soc" title="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>{% endif %}
+        {% if m.github   %}<a href="{{ m.github }}"   target="_blank" class="m-soc" title="GitHub"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a>{% endif %}
+        {% if m.twitter  %}<a href="{{ m.twitter }}"  target="_blank" class="m-soc" title="Twitter"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>{% endif %}
+        {% if m.instagram%}<a href="{{ m.instagram}}" target="_blank" class="m-soc" title="Instagram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>{% endif %}
+        {% if m.gfg_profile %}<a href="{{ m.gfg_profile }}" target="_blank" class="m-soc" title="GFG">GFG</a>{% endif %}
+        {% if m.leetcode   %}<a href="{{ m.leetcode }}"    target="_blank" class="m-soc" title="LeetCode">LC</a>{% endif %}
+        {% if m.email      %}<a href="mailto:{{ m.email }}" class="m-soc" title="Email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/></svg></a>{% endif %}
+        {% if m.portfolio  %}<a href="{{ m.portfolio }}"   target="_blank" class="m-soc" title="Portfolio">↗</a>{% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="mantri-card" style="opacity:.35;pointer-events:none;">
+      <div class="mantri-bar"></div>
+      <div class="mantri-crown">👑 Campus Mantri</div>
+      <div class="mantri-top">
+        <div class="mantri-av-wrap"><div class="mantri-av-fb">CM</div></div>
+        <div class="mantri-name">To Be Announced</div>
+        <div class="mantri-title-lbl">Campus Mantri</div>
+        <div class="mantri-tagline">"Add via Admin → Campus Mantri"</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+
+<!-- ══ 6. BLOG PREVIEW ══ -->
+<div class="bg-alt">
+  <div class="sec reveal">
+    <div class="row-between">
+      <div><div class="lbl">// latest from the blog</div><h2 class="ttl">Fresh Off the <span class="g">Terminal</span></h2></div>
+      <a href="{% url 'blog_list' %}" class="btn-va">View All Posts →</a>
+    </div>
+    <div class="blog-grid">
+      {% for post in recent_posts %}
+      <a href="{{ post.get_absolute_url }}" class="blog-card">
+        <div class="blog-thumb">{% if post.cover_image %}<img src="{{ post.cover_image.url }}" alt="{{ post.title }}">{% else %}💻{% endif %}</div>
+        <div class="blog-body">
+          {% if post.category %}<div class="blog-cat">{{ post.category.name }}</div>{% endif %}
+          <h3>{{ post.title }}</h3>
+          <p>{{ post.excerpt|default:post.content|truncatewords:18 }}</p>
+          <div class="blog-foot"><span>{{ post.author.username }}</span><span>{{ post.created_at|date:"M d, Y" }}</span></div>
+        </div>
+      </a>
+      {% empty %}
+      {% for i in "123" %}
+      <div class="blog-card" style="cursor:default;">
+        <div class="blog-thumb">{% if forloop.counter == 1 %}🧠{% elif forloop.counter == 2 %}🔧{% else %}📊{% endif %}</div>
+        <div class="blog-body">
+          <div class="blog-cat">{% if forloop.counter == 1 %}DSA{% elif forloop.counter == 2 %}Web Dev{% else %}AI/ML{% endif %}</div>
+          <h3>{% if forloop.counter == 1 %}Understanding Binary Search Trees{% elif forloop.counter == 2 %}Building REST APIs with Django{% else %}Intro to Neural Networks{% endif %}</h3>
+          <p>Community articles coming soon. Be the first to publish your knowledge.</p>
+          <div class="blog-foot"><span>GFG CGC</span><span>Coming soon</span></div>
+        </div>
+      </div>
+      {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ 7. EVENTS PREVIEW ══ -->
+<div class="sec reveal">
+  <div class="row-between">
+    <div><div class="lbl">// upcoming events</div><h2 class="ttl">Don't Miss <span class="g">What's Next</span></h2></div>
+    <a href="{% url 'event_list' %}" class="btn-va">All Events →</a>
+  </div>
+  <div class="event-rows">
+    {% for event in upcoming_events %}
+    <a href="{{ event.get_absolute_url }}" class="event-row">
+      <div class="ev-date">
+        <div class="ev-day">{{ event.start_dt|date:"d" }}</div>
+        <div class="ev-mon">{{ event.start_dt|date:"M" }}</div>
+      </div>
+      <div class="ev-info">
+        <h3>{{ event.title }}</h3>
+        <p>
+          {{ event.start_dt|date:"g:i A" }} ·
+          {% if event.venue %}
+            <a href="https://www.google.com/maps/search/?api=1&query={{ event.venue|urlencode }}"
+               target="_blank" rel="noopener" onclick="event.stopPropagation()">
+              📍 {{ event.venue }}
+            </a>
+          {% else %}🌐 Online{% endif %}
+          · {{ event.rsvp_count }} going
+        </p>
+      </div>
+      <span class="ev-badge ev-{{ event.mode }}">{{ event.get_mode_display }}</span>
+    </a>
+    {% empty %}
+    <div class="event-row" style="cursor:default;opacity:.5;">
+      <div class="ev-date"><div class="ev-day">28</div><div class="ev-mon">Mar</div></div>
+      <div class="ev-info"><h3>DSA Bootcamp — Arrays & Strings</h3><p>10:00 AM · 📍 CS Lab 3, Block B</p></div>
+      <span class="ev-badge ev-offline">Offline</span>
+    </div>
+    <div class="event-row" style="cursor:default;opacity:.5;">
+      <div class="ev-date"><div class="ev-day">05</div><div class="ev-mon">Apr</div></div>
+      <div class="ev-info"><h3>Open Source Contribution Workshop</h3><p>2:00 PM · 🌐 Online</p></div>
+      <span class="ev-badge ev-online">Online</span>
+    </div>
+    <div class="event-row" style="cursor:default;opacity:.5;">
+      <div class="ev-date"><div class="ev-day">12</div><div class="ev-mon">Apr</div></div>
+      <div class="ev-info"><h3>CGC Hackathon 2026 — 24hr Sprint</h3><p>9:00 AM · 📍 Seminar Hall</p></div>
+      <span class="ev-badge ev-hybrid">Hybrid</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+
+<!-- ══ 8. CORE TEAM PREVIEW ══ -->
+<div class="bg-alt">
+  <div class="sec reveal">
+    <div class="row-between">
+      <div>
+        <div class="lbl">// core team</div>
+        <h2 class="ttl">The People Behind the <span class="g">Magic</span></h2>
+        <p class="sub">Student leaders who show up, ship things, and lift everyone around them.</p>
+      </div>
+      <a href="{% url 'team_page' %}" class="btn-va">Full Team →</a>
+    </div>
+    <div class="team-grid">
+      {% for member in core_members %}
+      <div class="team-card">
+        <div class="team-av-wrap">
+          {% if member.photo %}<img src="{{ member.photo.url }}" alt="{{ member.name }}" class="team-av">
+          {% else %}<div class="team-av-fb">{{ member.get_initials }}</div>{% endif %}
+          <div class="team-av-ring"></div>
+        </div>
+        <h3>{{ member.name }}</h3>
+        <div class="team-role-lbl">{{ member.role }}</div>
+        <div class="team-dept-lbl">
+          {{ member.branch }}{% if member.branch and member.year %}, {% endif %}{{ member.year }}
+        </div>
+        <div class="team-soc">
+          {% if member.twitter  %}<a href="{{ member.twitter }}"  target="_blank" class="t-soc" title="Twitter">𝕏</a>{% endif %}
+          {% if member.linkedin %}<a href="{{ member.linkedin }}" target="_blank" class="t-soc" title="LinkedIn">in</a>{% endif %}
+          {% if member.github   %}<a href="{{ member.github }}"   target="_blank" class="t-soc" title="GitHub">gh</a>{% endif %}
+          {% if member.gfg_profile %}<a href="{{ member.gfg_profile }}" target="_blank" class="t-soc" title="GFG">G</a>{% endif %}
+        </div>
+      </div>
+      {% empty %}
+      {% for i in "123456" %}
+      <div class="team-card" style="opacity:.35;">
+        <div class="team-av-wrap"><div class="team-av-fb">?</div><div class="team-av-ring"></div></div>
+        <h3>Coming Soon</h3>
+        <div class="team-role-lbl">Core Member</div>
+        <div class="team-dept-lbl">Add via Admin</div>
+      </div>
+      {% endfor %}
+      {% endfor %}
+    </div>
+    <div style="text-align:center;margin-top:2.5rem;">
+      <a href="{% url 'team_page' %}" class="btn-hp" style="display:inline-flex;">
+        Meet the Full Team →
+      </a>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ 9. JOIN CTA ══ -->
+<div class="cta-sec reveal">
+  <h2>Ready to Join the <span class="g">Community?</span></h2>
+  <p>It's free, open to all CGC students, and it might just change your career.</p>
+  <div class="cta-btns">
+    <a href="{% url 'event_list' %}" class="btn-hp">Join Next Event →</a>
+    <a href="{% url 'blog_list' %}"  class="btn-hg">Start Reading</a>
+    <a href="{% url 'team_page' %}"  class="btn-hg">Meet the Team</a>
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/* ── STAT COUNT-UP ── */
+(function () {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      e.target.querySelectorAll('[data-target]').forEach(el => {
+        const t = parseInt(el.dataset.target);
+        let s = null;
+        (function step(ts) {
+          if (!s) s = ts;
+          const prog = Math.min((ts - s) / 1400, 1);
+          el.textContent = Math.floor((1 - Math.pow(1 - prog, 3)) * t) + '+';
+          if (prog < 1) requestAnimationFrame(step);
+        })(performance.now());
+      });
+      obs.unobserve(e.target);
+    });
+  }, { threshold: .4 });
+  const bar = document.querySelector('.stats-bar');
+  if (bar) obs.observe(bar);
+})();
+</script>
+{% endblock %}

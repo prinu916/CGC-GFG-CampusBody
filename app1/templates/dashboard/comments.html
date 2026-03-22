@@ -1,0 +1,134 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Comments — Dashboard{% endblock %}
+{% block page_title %}Comment Moderation{% endblock %}
+
+{% block content %}
+
+<!-- Quick stats -->
+<div style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+  <div style="background:rgba(0,255,135,.07);border:1px solid rgba(0,255,135,.18);border-radius:10px;padding:.75rem 1.25rem;display:flex;align-items:center;gap:.6rem;">
+    <span style="font-size:1.2rem;">✅</span>
+    <div>
+      <div style="font-family:var(--display);font-size:1.1rem;font-weight:800;color:var(--green);">
+        {{ comments|length }}
+      </div>
+      <div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Total</div>
+    </div>
+  </div>
+  <div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.18);border-radius:10px;padding:.75rem 1.25rem;display:flex;align-items:center;gap:.6rem;">
+    <span style="font-size:1.2rem;">🚫</span>
+    <div>
+      <div style="font-family:var(--display);font-size:1.1rem;font-weight:800;color:#f87171;">
+        {% with hidden=0 %}
+          {% for c in comments %}{% if not c.is_active %}{% with hidden=hidden|add:1 %}{% endwith %}{% endif %}{% endfor %}
+        {% endwith %}
+        {{ comments|dictsort:"is_active"|first }}
+      </div>
+      <div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Hidden</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter tabs -->
+<div style="display:flex;gap:.5rem;margin-bottom:1.25rem;">
+  <button class="btn btn-outline btn-sm" id="filterAll" onclick="filterComments('all', this)" style="border-color:rgba(0,255,135,.35);color:var(--green);">
+    All
+  </button>
+  <button class="btn btn-outline btn-sm" id="filterActive" onclick="filterComments('active', this)">
+    Visible
+  </button>
+  <button class="btn btn-outline btn-sm" id="filterHidden" onclick="filterComments('hidden', this)">
+    Hidden
+  </button>
+</div>
+
+<div class="dash-table-wrap">
+  <table class="dash-table">
+    <thead>
+      <tr>
+        <th>Author</th>
+        <th>Post</th>
+        <th>Comment</th>
+        <th>Date</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in comments %}
+      <tr class="comment-row" data-active="{{ c.is_active|yesno:'true,false' }}">
+        <td>
+          <div style="display:flex;align-items:center;gap:.6rem;">
+            <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2F8D46,#00ff87);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:.65rem;font-weight:800;color:#04080c;flex-shrink:0;">
+              {{ c.author.username|slice:":1"|upper }}
+            </div>
+            <div>
+              <div style="font-weight:500;font-size:.85rem;">{{ c.author.username }}</div>
+              <div style="font-family:var(--mono);font-size:.62rem;color:var(--muted);">{{ c.author.email|default:"" }}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <a href="{{ c.post.get_absolute_url }}" target="_blank"
+             style="color:var(--muted);text-decoration:none;font-size:.82rem;transition:color .2s;"
+             onmouseover="this.style.color='var(--green)'"
+             onmouseout="this.style.color='var(--muted)'">
+            {{ c.post.title|truncatechars:28 }} ↗
+          </a>
+        </td>
+        <td>
+          <div style="color:var(--muted);font-size:.85rem;max-width:300px;line-height:1.5;">
+            {{ c.body|truncatechars:80 }}
+          </div>
+        </td>
+        <td style="font-family:var(--mono);font-size:.68rem;color:var(--muted);white-space:nowrap;">
+          {{ c.created_at|date:"M d, Y" }}<br>
+          <span style="color:#3a4a58;">{{ c.created_at|date:"g:i A" }}</span>
+        </td>
+        <td>
+          {% if c.is_active %}
+            <span class="badge badge-green">Visible</span>
+          {% else %}
+            <span class="badge badge-red">Hidden</span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{% url 'dashboard_comment_toggle' c.pk %}"
+             class="btn btn-sm {% if c.is_active %}btn-danger{% else %}btn-outline{% endif %}">
+            {% if c.is_active %}Hide{% else %}Show{% endif %}
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6">
+          <div class="empty-state">
+            <p>💬</p>
+            <p>No comments yet.</p>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterComments(type, btn) {
+  document.querySelectorAll('[id^="filter"]').forEach(b => {
+    b.style.borderColor = '';
+    b.style.color = '';
+  });
+  btn.style.borderColor = 'rgba(0,255,135,.35)';
+  btn.style.color = 'var(--green)';
+  document.querySelectorAll('.comment-row').forEach(row => {
+    if (type === 'all') row.style.display = '';
+    else if (type === 'active') row.style.display = row.dataset.active === 'true' ? '' : 'none';
+    else row.style.display = row.dataset.active === 'false' ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}{{ action }} Core Value — Dashboard{% endblock %}
+{% block page_title %}{{ action }} Core Value{% endblock %}
+
+{% block content %}
+
+<form method="post">
+  {% csrf_token %}
+
+  <div class="form-card">
+
+    <!-- Title + Icon -->
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Value Title *</label>
+        <input type="text" name="title"
+               value="{{ obj.title|default:'' }}"
+               placeholder="e.g. Innovation, Collaboration, Excellence"
+               required>
+      </div>
+      <div class="form-group">
+        <label>Icon <span style="color:var(--muted);">(select one)</span></label>
+        <select name="icon">
+          <option value="⚡" {% if obj.icon == '⚡' or not obj %}selected{% endif %}>⚡  Lightning — Energy & Speed</option>
+          <option value="🤝" {% if obj.icon == '🤝' %}selected{% endif %}>🤝  Handshake — Collaboration</option>
+          <option value="💡" {% if obj.icon == '💡' %}selected{% endif %}>💡  Bulb — Innovation</option>
+          <option value="🌱" {% if obj.icon == '🌱' %}selected{% endif %}>🌱  Seedling — Growth</option>
+          <option value="🔥" {% if obj.icon == '🔥' %}selected{% endif %}>🔥  Fire — Passion</option>
+          <option value="🧠" {% if obj.icon == '🧠' %}selected{% endif %}>🧠  Brain — Knowledge</option>
+          <option value="🎯" {% if obj.icon == '🎯' %}selected{% endif %}>🎯  Target — Focus</option>
+          <option value="🌐" {% if obj.icon == '🌐' %}selected{% endif %}>🌐  Globe — Community</option>
+          <option value="💎" {% if obj.icon == '💎' %}selected{% endif %}>💎  Diamond — Excellence</option>
+          <option value="🚀" {% if obj.icon == '🚀' %}selected{% endif %}>🚀  Rocket — Ambition</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="form-group">
+      <label>Description * <span style="color:var(--muted);">(2–3 sentences explaining this value)</span></label>
+      <textarea name="description" rows="5"
+                placeholder="Describe what this value means for the GFG CGC chapter and how it guides our actions…"
+                required>{{ obj.description|default:'' }}</textarea>
+    </div>
+
+    <!-- Order -->
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Display Order <span style="color:var(--muted);">(lower = shown first on the page)</span></label>
+        <input type="number" name="order"
+               value="{{ obj.order|default:'0' }}" min="0">
+      </div>
+      <div style="display:flex;align-items:flex-end;padding-bottom:1.1rem;">
+        {% if obj %}
+        <div class="form-check">
+          <input type="checkbox" name="is_active" id="is_active"
+                 {% if obj.is_active %}checked{% endif %}>
+          <label for="is_active" style="font-weight:500;">Show on About page</label>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div style="padding:1.25rem;background:rgba(0,255,135,.04);border:1px solid rgba(0,255,135,.1);border-radius:12px;margin-top:.5rem;">
+      <div style="font-family:var(--mono);font-size:.62rem;color:#3a4a58;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem;">
+        Preview on site
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:.85rem;">
+        <div style="width:44px;height:44px;border-radius:11px;background:rgba(0,255,135,.07);border:1px solid rgba(0,255,135,.14);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;" id="preview-icon">
+          {% if obj %}{{ obj.icon }}{% else %}⚡{% endif %}
+        </div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:#dde6f0;margin-bottom:.3rem;" id="preview-title">
+            {% if obj %}{{ obj.title }}{% else %}Your Value Title{% endif %}
+          </div>
+          <div style="font-size:.84rem;color:#7d8590;font-weight:300;line-height:1.6;" id="preview-desc">
+            {% if obj %}{{ obj.description|truncatechars:100 }}{% else %}Your description will appear here…{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /form-card -->
+
+  <!-- ACTIONS -->
+  <div style="display:flex;gap:1rem;align-items:center;margin-top:1.5rem;">
+    <button type="submit" class="btn btn-primary">
+      {% if action == 'Add' %}✦ Add Value{% else %}💾 Save Changes{% endif %}
+    </button>
+    <a href="{% url 'dashboard_about' %}" class="btn btn-outline">Cancel</a>
+  </div>
+
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* live preview update */
+document.querySelector('[name="icon"]').addEventListener('change', function(){
+  document.getElementById('preview-icon').textContent = this.value.split(' ')[0];
+});
+document.querySelector('[name="title"]').addEventListener('input', function(){
+  document.getElementById('preview-title').textContent = this.value || 'Your Value Title';
+});
+document.querySelector('[name="description"]').addEventListener('input', function(){
+  const t = this.value.slice(0, 100);
+  document.getElementById('preview-desc').textContent = t || 'Your description will appear here…';
+});
+</script>
+{% endblock %}

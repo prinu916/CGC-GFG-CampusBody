@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Member Login — GFG CGC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#04080c;color:#dde6f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;}
+    .login-wrap{width:100%;max-width:420px;}
+    .login-brand{text-align:center;margin-bottom:2.5rem;}
+    .login-logo{
+      width:64px;height:64px;border-radius:16px;
+      background:linear-gradient(135deg,#2F8D46,#00ff87);
+      display:flex;align-items:center;justify-content:center;
+      font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:#04080c;
+      margin:0 auto 1rem;
+      box-shadow:0 0 40px rgba(0,255,135,.35);
+    }
+    .login-brand h1{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:#dde6f0;margin-bottom:.25rem;}
+    .login-brand p{font-family:'DM Mono',monospace;font-size:.72rem;color:#3a4a58;letter-spacing:.1em;}
+    .login-card{
+      background:rgba(14,21,32,.85);backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:2.25rem;
+      position:relative;overflow:hidden;
+    }
+    .login-card::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:2px;
+      background:linear-gradient(90deg,transparent,#00ff87,transparent);
+    }
+    .form-group{margin-bottom:1.1rem;}
+    .form-group label{display:block;font-family:'DM Mono',monospace;font-size:.62rem;color:#7d8590;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.45rem;}
+    .form-group input{
+      width:100%;background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.09);color:#dde6f0;
+      padding:.7rem .9rem;border-radius:9px;
+      font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:300;
+      transition:border-color .2s,background .2s;
+    }
+    .form-group input:focus{outline:none;border-color:rgba(0,255,135,.4);background:rgba(0,255,135,.02);}
+    .form-group input::placeholder{color:#2a3a4a;}
+    .btn-login{
+      width:100%;padding:.82rem;
+      background:#2F8D46;color:#fff;
+      font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;
+      border:none;border-radius:9px;cursor:pointer;
+      transition:all .22s;box-shadow:0 0 20px rgba(47,141,70,.25);
+      margin-top:.4rem;
+    }
+    .btn-login:hover{background:#267a3c;transform:translateY(-1px);box-shadow:0 0 32px rgba(47,141,70,.4);}
+    .messages{list-style:none;margin-bottom:1rem;}
+    .messages li{padding:.7rem .9rem;border-radius:8px;margin-bottom:.5rem;font-family:'DM Mono',monospace;font-size:.78rem;}
+    .messages .error{background:rgba(239,68,68,.08);color:#f87171;border:1px solid rgba(239,68,68,.2);}
+    .back-link{display:block;text-align:center;margin-top:1.5rem;font-family:'DM Mono',monospace;font-size:.72rem;color:#3a4a58;text-decoration:none;transition:color .2s;}
+    .back-link:hover{color:#00ff87;}
+    .grid-bg{
+      position:fixed;inset:0;pointer-events:none;z-index:0;
+      background-image:linear-gradient(rgba(0,255,135,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,135,.03) 1px,transparent 1px);
+      background-size:55px 55px;
+    }
+    .glow{position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(0,255,135,.08) 0%,transparent 65%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;}
+    .login-wrap{position:relative;z-index:1;}
+  </style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow"></div>
+<div class="login-wrap">
+  <div class="login-brand">
+    <div class="login-logo">GFG</div>
+    <h1>Member Portal</h1>
+    <p>GFG CGC CHAPTER · DASHBOARD ACCESS</p>
+  </div>
+  <div class="login-card">
+    {% if messages %}
+    <ul class="messages">
+      {% for msg in messages %}<li class="{{ msg.tags }}">{{ msg }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="your_username" autofocus required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn-login">Sign In →</button>
+    </form>
+  </div>
+  <a href="{% url 'index' %}" class="back-link">← Back to GFG CGC Website</a>
+</div>
+</body>
+</html>

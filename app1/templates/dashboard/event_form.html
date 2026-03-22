@@ -1,0 +1,165 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}{{ action }} Event — Dashboard{% endblock %}
+{% block page_title %}{{ action }} Event{% endblock %}
+
+{% block content %}
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  <div class="form-card">
+
+    <!-- Row 1: Title -->
+    <div class="form-group">
+      <label>Event Title *</label>
+      <input type="text" name="title"
+             value="{{ event.title|default:'' }}"
+             placeholder="e.g. DSA Bootcamp — Arrays & Strings" required>
+    </div>
+
+    <!-- Row 2: Mode + Category -->
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Event Mode</label>
+        <select name="mode">
+          <option value="offline"
+            {% if event.mode == 'offline' or not event %}selected{% endif %}>
+            📍 Offline (physical venue)
+          </option>
+          <option value="online"
+            {% if event.mode == 'online' %}selected{% endif %}>
+            🌐 Online (virtual)
+          </option>
+          <option value="hybrid"
+            {% if event.mode == 'hybrid' %}selected{% endif %}>
+            🔀 Hybrid (both)
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select name="category">
+          <option value="">— No Category —</option>
+          {% for cat in categories %}
+            <option value="{{ cat.pk }}"
+              {% if event.category_id == cat.pk %}selected{% endif %}>
+              {{ cat.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Row 3: Start + End datetime -->
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Start Date & Time *</label>
+        <input type="datetime-local" name="start_dt"
+               value="{{ event.start_dt|date:'Y-m-d\TH:i'|default:'' }}" required>
+      </div>
+      <div class="form-group">
+        <label>End Date & Time *</label>
+        <input type="datetime-local" name="end_dt"
+               value="{{ event.end_dt|date:'Y-m-d\TH:i'|default:'' }}" required>
+      </div>
+    </div>
+
+    <!-- Row 4: Venue + Meet link -->
+    <div class="form-grid">
+      <div class="form-group">
+        <label>📍 Venue / Location <span style="color:var(--muted);">(for offline/hybrid)</span></label>
+        <input type="text" name="venue"
+               value="{{ event.venue|default:'' }}"
+               placeholder="e.g. CS Lab 3, Block B, CGC Landran">
+        <small style="color:var(--muted);font-family:var(--mono);font-size:.62rem;margin-top:.3rem;display:block;">
+          This will appear as a clickable Google Maps link on the site.
+        </small>
+      </div>
+      <div class="form-group">
+        <label>🔗 Meeting Link <span style="color:var(--muted);">(for online/hybrid)</span></label>
+        <input type="url" name="meet_link"
+               value="{{ event.meet_link|default:'' }}"
+               placeholder="https://meet.google.com/abc-def-ghi">
+      </div>
+    </div>
+
+    <!-- Row 5: Max RSVPs + Cover Image -->
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Max RSVPs <span style="color:var(--muted);">(0 = unlimited seats)</span></label>
+        <input type="number" name="max_rsvp"
+               value="{{ event.max_rsvp|default:'0' }}" min="0">
+      </div>
+      <div class="form-group">
+        <label>Cover Image</label>
+        <input type="file" name="cover_image" accept="image/*"
+               style="padding:.5rem .75rem;background:rgba(255,255,255,.03);">
+        {% if event.cover_image %}
+          <div style="margin-top:.75rem;">
+            <img src="{{ event.cover_image.url }}"
+                 style="height:80px;border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,.07);">
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Row 6: Description -->
+    <div class="form-group">
+      <label>Event Description <span style="color:var(--muted);">(Markdown supported)</span></label>
+      <textarea name="description" rows="8"
+                placeholder="Describe what attendees can expect…&#10;&#10;Topics covered, prerequisites, what to bring, etc.">{{ event.description|default:'' }}</textarea>
+    </div>
+
+    <!-- Row 7: Tags -->
+    <div class="form-group">
+      <label>Tags <span style="color:var(--muted);">(hold Ctrl/Cmd for multiple)</span></label>
+      <select name="tags" multiple style="height:90px;">
+        {% for tag in tags %}
+          <option value="{{ tag.pk }}"
+            {% if tag in event.tags.all %}selected{% endif %}>
+            # {{ tag.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Publish toggle — admins only -->
+    {% if role.is_admin %}
+    <div style="margin-top:.5rem;padding:1rem;background:rgba(0,255,135,.04);border:1px solid rgba(0,255,135,.12);border-radius:10px;">
+      <div class="form-check">
+        <input type="checkbox" name="is_published" id="is_published"
+               {% if event.is_published %}checked{% endif %}>
+        <label for="is_published" style="font-weight:500;">
+          Publish this event (visible on the site immediately)
+        </label>
+      </div>
+      <p style="font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-top:.4rem;">
+        Uncheck to save as draft. Only Admins can publish events.
+      </p>
+    </div>
+    {% else %}
+    <div style="padding:.75rem 1rem;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:10px;">
+      <p style="font-family:var(--mono);font-size:.7rem;color:#60a5fa;">
+        ℹ Your event will be saved as Draft. An Admin will review and publish it.
+      </p>
+    </div>
+    {% endif %}
+
+  </div><!-- /form-card -->
+
+  <!-- Actions -->
+  <div style="display:flex;gap:1rem;align-items:center;margin-top:1.5rem;">
+    <button type="submit" class="btn btn-primary">
+      {% if action == 'Create' %}✦ Create Event{% else %}💾 Save Changes{% endif %}
+    </button>
+    <a href="{% url 'dashboard_events' %}" class="btn btn-outline">Cancel</a>
+    {% if event %}
+    <a href="{{ event.get_absolute_url }}" target="_blank"
+       class="btn btn-outline" style="margin-left:auto;">
+      View on Site ↗
+    </a>
+    {% endif %}
+  </div>
+
+</form>
+{% endblock %}

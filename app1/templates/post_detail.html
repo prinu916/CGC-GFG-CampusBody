@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} — GFG CGC{% endblock %}
+
+{% block content %}
+<div style="max-width:800px;margin:0 auto;">
+
+  <!-- Header -->
+  <div style="margin-bottom:2rem;">
+    <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+      {% if post.category %}<span class="badge badge-green">{{ post.category.name }}</span>{% endif %}
+      {% for tag in post.tags.all %}<span class="badge badge-gray"># {{ tag.name }}</span>{% endfor %}
+    </div>
+    <h1 style="font-size:2rem;line-height:1.3;margin-bottom:1rem;">{{ post.title }}</h1>
+    <div style="display:flex;gap:1.5rem;color:#6b7280;font-size:0.9rem;flex-wrap:wrap;">
+      <span>✍️ {{ post.author.get_full_name|default:post.author.username }}</span>
+      <span>📅 {{ post.created_at|date:"F d, Y" }}</span>
+      <span>💬 {{ comments.count }} comment{{ comments.count|pluralize }}</span>
+    </div>
+  </div>
+
+  {% if post.cover_image %}
+    <img src="{{ post.cover_image.url }}" alt="{{ post.title }}"
+         style="width:100%;border-radius:10px;margin-bottom:2rem;max-height:400px;object-fit:cover;">
+  {% endif %}
+
+  <!-- Content (Markdown rendered as plain text — add markdown filter if needed) -->
+  <div style="line-height:1.8;font-size:1.05rem;margin-bottom:3rem;white-space:pre-line;">
+    {{ post.content }}
+  </div>
+
+  <!-- Related posts -->
+  {% if related_posts %}
+  <div style="margin-bottom:3rem;">
+    <h3 style="margin-bottom:1rem;">📚 Related Posts</h3>
+    <div class="grid-3">
+      {% for rp in related_posts %}
+      <div class="card">
+        <div class="card-body">
+          <h4 style="font-size:0.95rem;"><a href="{{ rp.get_absolute_url }}" style="text-decoration:none;color:inherit;">{{ rp.title }}</a></h4>
+          <p style="font-size:0.8rem;color:#9ca3af;margin-top:0.4rem;">{{ rp.created_at|date:"M d, Y" }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Comments -->
+  <div style="border-top:2px solid #e5e7eb;padding-top:2rem;">
+    <h3 style="margin-bottom:1.5rem;">💬 Comments ({{ comments.count }})</h3>
+
+    {% for comment in comments %}
+    <div style="display:flex;gap:1rem;margin-bottom:1.5rem;">
+      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#2F8D46,#00d084);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0;">
+        {{ comment.author.username|slice:":1"|upper }}
+      </div>
+      <div style="flex:1;">
+        <div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.4rem;">
+          <strong>{{ comment.author.get_full_name|default:comment.author.username }}</strong>
+          <span style="font-size:0.8rem;color:#9ca3af;">{{ comment.created_at|date:"M d, Y · g:i A" }}</span>
+        </div>
+        <p style="color:#374151;line-height:1.6;">{{ comment.body }}</p>
+      </div>
+    </div>
+    {% empty %}
+    <p style="color:#9ca3af;">No comments yet. Be the first!</p>
+    {% endfor %}
+
+    <!-- Comment form -->
+    <div style="background:#f9fafb;border-radius:10px;padding:1.5rem;margin-top:2rem;">
+      <h4 style="margin-bottom:1rem;">Leave a Comment</h4>
+      {% if user.is_authenticated %}
+      <form method="post">
+        {% csrf_token %}
+        <textarea name="body" rows="4" placeholder="Share your thoughts..."
+          style="width:100%;padding:0.75rem;border:1px solid #e5e7eb;border-radius:8px;font-family:inherit;font-size:0.95rem;resize:vertical;margin-bottom:1rem;"></textarea>
+        <button type="submit" class="btn btn-primary">Post Comment</button>
+      </form>
+      {% else %}
+      <p style="color:#6b7280;">
+        <a href="{% url 'login' %}?next={{ request.path }}" style="color:#2F8D46;font-weight:600;">Log in</a> to leave a comment.
+      </p>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Events — Dashboard{% endblock %}
+{% block page_title %}Events{% endblock %}
+
+{% block content %}
+
+<div class="section-head">
+  <form method="get" class="search-bar">
+    <input type="text" name="q" value="{{ q }}"
+           placeholder="Search events…" class="search-input">
+    <button type="submit" class="btn btn-outline btn-sm">Search</button>
+  </form>
+  <a href="{% url 'dashboard_event_create' %}" class="btn btn-primary">+ New Event</a>
+</div>
+
+<div class="dash-table-wrap">
+  <table class="dash-table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Mode</th>
+        <th>Location</th>
+        <th>Date</th>
+        <th>RSVPs</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for event in events %}
+      <tr>
+        <td>
+          <a href="{{ event.get_absolute_url }}" target="_blank"
+             style="color:var(--text);text-decoration:none;font-weight:500;">
+            {{ event.title|truncatechars:36 }}
+          </a>
+        </td>
+        <td>
+          {% if event.mode == 'online' %}
+            <span class="badge badge-blue">🌐 Online</span>
+          {% elif event.mode == 'offline' %}
+            <span class="badge badge-orange">📍 Offline</span>
+          {% else %}
+            <span class="badge badge-green">🔀 Hybrid</span>
+          {% endif %}
+        </td>
+        <td style="color:var(--muted);font-size:.82rem;">
+          {% if event.venue %}
+            <a href="https://www.google.com/maps/search/?api=1&query={{ event.venue|urlencode }}"
+               target="_blank" style="color:#fb923c;text-decoration:none;">
+              📍 {{ event.venue|truncatechars:22 }}
+            </a>
+          {% elif event.meet_link %}
+            <a href="{{ event.meet_link }}" target="_blank"
+               style="color:#60a5fa;text-decoration:none;">🔗 Online Link</a>
+          {% else %}
+            <span>—</span>
+          {% endif %}
+        </td>
+        <td style="font-family:var(--mono);font-size:.72rem;color:var(--muted);">
+          {{ event.start_dt|date:"M d, Y" }}<br>
+          <span style="color:#3a4a58;">{{ event.start_dt|date:"g:i A" }}</span>
+        </td>
+        <td>
+          <span style="color:var(--green);font-family:var(--mono);font-size:.82rem;font-weight:600;">
+            {{ event.rsvp_count }}
+          </span>
+          {% if event.max_rsvp %}
+            <span style="color:var(--muted);font-family:var(--mono);font-size:.7rem;">
+              / {{ event.max_rsvp }}
+            </span>
+          {% endif %}
+        </td>
+        <td>
+          {% if event.is_published %}
+            <span class="badge badge-green">Live</span>
+          {% else %}
+            <span class="badge badge-gray">Draft</span>
+          {% endif %}
+        </td>
+        <td>
+          <div style="display:flex;gap:.4rem;">
+            <a href="{% url 'dashboard_event_edit' event.pk %}"
+               class="btn btn-outline btn-sm">Edit</a>
+            {% if role.can_delete %}
+            <a href="{% url 'dashboard_event_delete' event.pk %}"
+               class="btn btn-danger btn-sm"
+               onclick="return confirm('Delete this event? All RSVPs will be lost.')">
+              Delete
+            </a>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7">
+          <div class="empty-state">
+            <p>🗓️</p>
+            <p>No events yet.</p>
+            <p style="margin-top:.5rem;">
+              <a href="{% url 'dashboard_event_create' %}"
+                 style="color:var(--green);text-decoration:none;">
+                Create your first event →
+              </a>
+            </p>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

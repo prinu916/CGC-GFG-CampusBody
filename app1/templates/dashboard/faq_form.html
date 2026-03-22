@@ -1,0 +1,97 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}{{ action }} FAQ — Dashboard{% endblock %}
+{% block page_title %}{{ action }} FAQ{% endblock %}
+
+{% block content %}
+
+<form method="post">
+  {% csrf_token %}
+
+  <div class="form-card">
+
+    <!-- Question -->
+    <div class="form-group">
+      <label>Question *</label>
+      <input type="text" name="question"
+             value="{{ obj.question|default:'' }}"
+             placeholder="e.g. How do I join the GFG CGC Chapter?"
+             required>
+    </div>
+
+    <!-- Answer -->
+    <div class="form-group">
+      <label>
+        Answer *
+        <span style="color:var(--muted);">(write a clear, helpful response)</span>
+      </label>
+      <textarea name="answer" rows="7"
+                placeholder="Write your answer here. Be clear and concise. You can include steps, links, or any helpful info."
+                required>{{ obj.answer|default:'' }}</textarea>
+    </div>
+
+    <!-- Order + Visibility -->
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Display Order <span style="color:var(--muted);">(lower = shown first)</span></label>
+        <input type="number" name="order"
+               value="{{ obj.order|default:'0' }}" min="0">
+      </div>
+      <div style="display:flex;align-items:flex-end;padding-bottom:1.1rem;">
+        {% if obj %}
+        <div class="form-check">
+          <input type="checkbox" name="is_active" id="is_active"
+                 {% if obj.is_active %}checked{% endif %}>
+          <label for="is_active" style="font-weight:500;">Show on About page</label>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div style="padding:1.25rem;background:rgba(14,21,32,.6);border:1px solid rgba(255,255,255,.07);border-radius:12px;margin-top:.5rem;">
+      <div style="font-family:var(--mono);font-size:.62rem;color:#3a4a58;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.85rem;">
+        Preview on site
+      </div>
+
+      <!-- FAQ accordion preview -->
+      <div style="background:rgba(14,21,32,.75);border:1px solid rgba(0,255,135,.18);border-radius:10px;overflow:hidden;">
+        <div style="padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+          <span style="font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:#dde6f0;" id="prev-q">
+            {% if obj %}{{ obj.question }}{% else %}Your question will appear here?{% endif %}
+          </span>
+          <span style="width:26px;height:26px;border-radius:6px;background:rgba(0,255,135,.1);border:1px solid rgba(0,255,135,.2);display:flex;align-items:center;justify-content:center;color:#00ff87;font-size:.9rem;flex-shrink:0;">▾</span>
+        </div>
+        <div style="padding:0 1.25rem 1.1rem;border-top:1px solid rgba(255,255,255,.05);">
+          <p style="font-family:'DM Sans',sans-serif;font-weight:300;color:#8899aa;font-size:.9rem;line-height:1.75;padding-top:.85rem;" id="prev-a">
+            {% if obj %}{{ obj.answer|truncatechars:180 }}{% else %}Your answer will appear here…{% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /form-card -->
+
+  <!-- ACTIONS -->
+  <div style="display:flex;gap:1rem;align-items:center;margin-top:1.5rem;">
+    <button type="submit" class="btn btn-primary">
+      {% if action == 'Add' %}✦ Add FAQ{% else %}💾 Save Changes{% endif %}
+    </button>
+    <a href="{% url 'dashboard_about' %}" class="btn btn-outline">Cancel</a>
+  </div>
+
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* live preview */
+document.querySelector('[name="question"]').addEventListener('input', function(){
+  document.getElementById('prev-q').textContent = this.value || 'Your question will appear here?';
+});
+document.querySelector('[name="answer"]').addEventListener('input', function(){
+  const t = this.value.slice(0, 180);
+  document.getElementById('prev-a').textContent = t || 'Your answer will appear here…';
+});
+</script>
+{% endblock %}

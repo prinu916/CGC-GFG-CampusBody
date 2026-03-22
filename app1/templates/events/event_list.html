@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+{% block title %}Events — GFG CGC Chapter{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    display: flex; gap: 1.5rem; flex-wrap: wrap;
+    margin-bottom: 2rem;
+    background: rgba(14,21,32,0.7); backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 1.25rem 1.5rem;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 0.5rem; }
+  .filter-label {
+    font-family: 'DM Mono', monospace; font-size: 0.62rem;
+    color: #3a4a58; letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .filter-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .chip {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    padding: 0.28rem 0.75rem; border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03); color: #7d8590;
+    text-decoration: none; transition: all 0.2s; white-space: nowrap;
+  }
+  .chip:hover  { border-color: rgba(0,255,135,0.3); color: #00ff87; background: rgba(0,255,135,0.06); }
+  .chip.active   { border-color: rgba(0,255,135,0.35);  color: #00ff87; background: rgba(0,255,135,0.09); }
+  .chip.active-b { border-color: rgba(59,130,246,0.35); color: #60a5fa; background: rgba(59,130,246,0.08); }
+  .chip.active-o { border-color: rgba(249,115,22,0.35); color: #fb923c; background: rgba(249,115,22,0.08); }
+
+  /* ── EVENT CARDS ── */
+  .events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px,1fr));
+    gap: 1.5rem;
+  }
+  .ev-card {
+    background: rgba(14,21,32,0.78); backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px; overflow: hidden;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    display: flex; flex-direction: column;
+  }
+  .ev-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 44px rgba(0,0,0,0.45);
+    border-color: rgba(0,255,135,0.18);
+  }
+
+  /* thumb */
+  .ev-thumb {
+    height: 158px; overflow: hidden; position: relative;
+    background: linear-gradient(135deg,#0d1117,#0e1520);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .ev-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .ev-thumb-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, transparent 50%, rgba(14,21,32,0.7) 100%);
+  }
+
+  /* date badge */
+  .ev-date-badge {
+    position: absolute; top: 0.85rem; left: 0.85rem;
+    background: rgba(4,8,12,0.88); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+    padding: 0.5rem 0.7rem; text-align: center; min-width: 48px;
+  }
+  .ev-badge-day { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:800; color:#00ff87; line-height:1; }
+  .ev-badge-mon { font-family:'DM Mono',monospace; font-size:0.6rem; color:#7d8590; letter-spacing:.1em; text-transform:uppercase; }
+
+  /* mode badge */
+  .ev-mode-badge {
+    position: absolute; top: 0.85rem; right: 0.85rem;
+    font-family: 'DM Mono', monospace; font-size: 0.62rem;
+    padding: 0.25rem 0.65rem; border-radius: 100px;
+  }
+  .mode-online  { background:rgba(59,130,246,.15); color:#60a5fa; border:1px solid rgba(59,130,246,.25); }
+  .mode-offline { background:rgba(249,115,22,.15); color:#fb923c; border:1px solid rgba(249,115,22,.25); }
+  .mode-hybrid  { background:rgba(0,255,135,.1);   color:#00ff87; border:1px solid rgba(0,255,135,.22); }
+
+  /* photo count badge */
+  .ev-photo-badge {
+    position: absolute; bottom: 0.75rem; left: 0.85rem;
+    font-family: 'DM Mono', monospace; font-size: 0.62rem;
+    background: rgba(4,8,12,.82); backdrop-filter: blur(8px);
+    color: #dde6f0; border: 1px solid rgba(255,255,255,.14);
+    border-radius: 100px; padding: 0.22rem 0.6rem;
+    display: flex; align-items: center; gap: .3rem;
+  }
+
+  /* full badge */
+  .ev-full-badge {
+    position: absolute; bottom: 0.75rem; right: 0.85rem;
+    font-family: 'DM Mono', monospace; font-size: 0.6rem;
+    background: rgba(239,68,68,.15); color:#f87171;
+    border: 1px solid rgba(239,68,68,.25); border-radius: 100px;
+    padding: 0.22rem 0.6rem;
+  }
+
+  /* card body */
+  .ev-body { padding: 1.3rem; flex: 1; display: flex; flex-direction: column; gap: 0.6rem; }
+  .ev-cats { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .ev-cat-tag {
+    font-family: 'DM Mono', monospace; font-size: 0.63rem;
+    color: #00ff87; background: rgba(0,255,135,0.07);
+    border: 1px solid rgba(0,255,135,0.18); border-radius: 100px;
+    padding: 0.18rem 0.6rem;
+  }
+  .ev-title {
+    font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700;
+    color: #dde6f0; line-height: 1.4; text-decoration: none; display: block;
+    transition: color 0.2s;
+  }
+  .ev-title:hover { color: #00ff87; }
+  .ev-desc {
+    font-family: 'DM Sans', sans-serif; font-weight: 300;
+    color: #7d8590; font-size: 0.85rem; line-height: 1.6;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+
+  /* info rows */
+  .ev-info-rows { display: flex; flex-direction: column; gap: 0.42rem; margin-top: 0.2rem; }
+  .ev-info-row {
+    display: flex; align-items: flex-start; gap: 0.5rem;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
+    color: #7d8590; font-weight: 300;
+  }
+  .ev-info-icon { font-size: 0.85rem; flex-shrink: 0; margin-top: 0.05rem; }
+  .ev-info-row a { color: #fb923c; text-decoration: none; transition: color 0.2s; }
+  .ev-info-row a:hover { color: #fdba74; text-decoration: underline; }
+
+  /* seats */
+  .ev-seats-wrap { margin-top: auto; padding-top: 0.75rem; }
+  .ev-seats-row {
+    display: flex; justify-content: space-between;
+    font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #3a4a58;
+    margin-bottom: 0.4rem;
+  }
+  .ev-seats-row span:last-child { color: #00ff87; }
+  .ev-progress { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.06); overflow: hidden; }
+  .ev-progress-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, #2F8D46, #00ff87);
+  }
+  .ev-progress-fill.full { background: #ef4444; }
+
+  /* footer */
+  .ev-foot {
+    padding: 0.9rem 1.3rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    background: rgba(0,0,0,0.2);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .ev-organizer { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: #3a4a58; }
+  .ev-rsvp-btn {
+    font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700;
+    padding: 0.4rem 1rem; border-radius: 7px; text-decoration: none; transition: all 0.2s;
+  }
+  .ev-rsvp-btn.go   { background: #2F8D46; color: #fff; }
+  .ev-rsvp-btn.go:hover { background: #267a3c; box-shadow: 0 0 16px rgba(47,141,70,0.35); }
+  .ev-rsvp-btn.full { background: rgba(239,68,68,0.1); color: #f87171; border:1px solid rgba(239,68,68,.2); cursor:not-allowed; }
+  .ev-rsvp-btn.view { background: rgba(0,255,135,0.07); color: #00ff87; border:1px solid rgba(0,255,135,.2); }
+  .ev-rsvp-btn.view:hover { background: rgba(0,255,135,0.14); }
+
+  /* empty */
+  .empty-state {
+    grid-column: 1/-1; text-align: center; padding: 5rem 2rem;
+    color: #2a3a4a; font-family: 'DM Mono', monospace;
+  }
+  .empty-state p:first-child { font-size: 3.5rem; margin-bottom: 1rem; }
+
+  /* page header */
+  .page-header { margin-bottom: 2rem; }
+  .page-header h1 { font-family:'Syne',sans-serif; font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; color:#dde6f0; margin-bottom:.5rem; }
+  .page-header p  { font-family:'DM Sans',sans-serif; font-weight:300; color:#7d8590; font-size:1rem; }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- PAGE HEADER -->
+<div class="page-header reveal">
+  <div style="font-family:'DM Mono',monospace;font-size:.68rem;color:#00ff87;letter-spacing:.18em;text-transform:uppercase;margin-bottom:.6rem;">// events</div>
+  <h1>🗓️ All Events</h1>
+  <p>Workshops, hackathons, tech talks and meetups by the GFG CGC Chapter</p>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar reveal">
+  <div class="filter-group">
+    <div class="filter-label">Mode</div>
+    <div class="filter-chips">
+      <a href="{% url 'event_list' %}"             class="chip {% if not selected_mode %}active{% endif %}">All</a>
+      <a href="?mode=online"  class="chip {% if selected_mode == 'online'  %}active-b{% endif %}">🌐 Online</a>
+      <a href="?mode=offline" class="chip {% if selected_mode == 'offline' %}active-o{% endif %}">📍 Offline</a>
+      <a href="?mode=hybrid"  class="chip {% if selected_mode == 'hybrid'  %}active{% endif %}">🔀 Hybrid</a>
+    </div>
+  </div>
+
+  {% if categories %}
+  <div class="filter-group">
+    <div class="filter-label">Category</div>
+    <div class="filter-chips">
+      {% for cat in categories %}
+        <a href="?category={{ cat.slug }}" class="chip {% if selected_category == cat.slug %}active{% endif %}">
+          {{ cat.name }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if tags %}
+  <div class="filter-group">
+    <div class="filter-label">Tags</div>
+    <div class="filter-chips">
+      {% for tag in tags %}
+        <a href="?tag={{ tag.slug }}" class="chip {% if selected_tag == tag.slug %}active{% endif %}"># {{ tag.name }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- EVENTS GRID -->
+<div class="events-grid">
+  {% for event in events %}
+  <div class="ev-card reveal">
+
+    <!-- Thumb -->
+    <div class="ev-thumb">
+      {% if event.cover_image %}
+        <img src="{{ event.cover_image.url }}" alt="{{ event.title }}">
+        <div class="ev-thumb-overlay"></div>
+      {% else %}
+        {% if event.mode == 'online' %}🌐{% elif event.mode == 'hybrid' %}🔀{% else %}📍{% endif %}
+      {% endif %}
+
+      <!-- Date badge -->
+      <div class="ev-date-badge">
+        <div class="ev-badge-day">{{ event.start_dt|date:"d" }}</div>
+        <div class="ev-badge-mon">{{ event.start_dt|date:"M" }}</div>
+      </div>
+
+      <!-- Mode badge -->
+      <div class="ev-mode-badge mode-{{ event.mode }}">{{ event.get_mode_display }}</div>
+
+      <!-- Photo count badge -->
+      {% with photo_count=event.photos.count %}
+      {% if photo_count %}
+      <div class="ev-photo-badge">📸 {{ photo_count }} photo{{ photo_count|pluralize }}</div>
+      {% endif %}
+      {% endwith %}
+
+      {% if event.is_full %}
+        <div class="ev-full-badge">FULL</div>
+      {% endif %}
+    </div>
+
+    <!-- Body -->
+    <div class="ev-body">
+      <div class="ev-cats">
+        {% if event.category %}<span class="ev-cat-tag">{{ event.category.name }}</span>{% endif %}
+        {% for tag in event.tags.all %}<span class="ev-cat-tag"># {{ tag.name }}</span>{% endfor %}
+      </div>
+
+      <a href="{{ event.get_absolute_url }}" class="ev-title">{{ event.title }}</a>
+
+      {% if event.description %}
+      <p class="ev-desc">{{ event.description }}</p>
+      {% endif %}
+
+      <!-- Info rows -->
+      <div class="ev-info-rows">
+        <div class="ev-info-row">
+          <span class="ev-info-icon">📅</span>
+          <span>{{ event.start_dt|date:"F d, Y" }} · {{ event.start_dt|date:"g:i A" }}
+            {% if event.end_dt %} — {{ event.end_dt|date:"g:i A" }}{% endif %}
+          </span>
+        </div>
+
+        {% if event.venue %}
+        <div class="ev-info-row">
+          <span class="ev-info-icon">📍</span>
+          <span>
+            <a href="https://www.google.com/maps/search/?api=1&query={{ event.venue|urlencode }}"
+               target="_blank" rel="noopener" onclick="event.stopPropagation()">
+              {{ event.venue }}
+            </a>
+          </span>
+        </div>
+        {% elif event.meet_link %}
+        <div class="ev-info-row">
+          <span class="ev-info-icon">🔗</span>
+          <span>
+            <a href="{{ event.meet_link }}" target="_blank" rel="noopener"
+               onclick="event.stopPropagation()" style="color:#60a5fa;">
+              Join Online Meeting ↗
+            </a>
+          </span>
+        </div>
+        {% endif %}
+
+        <div class="ev-info-row">
+          <span class="ev-info-icon">👥</span>
+          <span>
+            {{ event.rsvp_count }} going
+            {% if event.max_rsvp %} · {{ event.seats_left }} seats left{% endif %}
+          </span>
+        </div>
+      </div>
+
+      <!-- Seats progress bar -->
+      {% if event.max_rsvp %}
+      <div class="ev-seats-wrap">
+        <div class="ev-seats-row">
+          <span>Seats filled</span>
+          <span>{{ event.rsvp_count }} / {{ event.max_rsvp }}</span>
+        </div>
+        <div class="ev-progress">
+          <div class="ev-progress-fill {% if event.is_full %}full{% endif %}"
+               style="width:{% widthratio event.rsvp_count event.max_rsvp 100 %}%;">
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+    </div><!-- /ev-body -->
+
+    <!-- Footer -->
+    <div class="ev-foot">
+      <span class="ev-organizer">by {{ event.organizer.get_full_name|default:event.organizer.username }}</span>
+      {% if event.is_full %}
+        <span class="ev-rsvp-btn full">Event Full</span>
+      {% else %}
+        <a href="{{ event.get_absolute_url }}" class="ev-rsvp-btn go">RSVP Now →</a>
+      {% endif %}
+    </div>
+
+  </div>
+  {% empty %}
+  <div class="empty-state">
+    <p>📭</p>
+    <p style="font-size:1.1rem;color:#7d8590;margin-bottom:0.5rem;">No events found</p>
+    <p style="font-size:0.78rem;">Check back soon — something exciting is coming!</p>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

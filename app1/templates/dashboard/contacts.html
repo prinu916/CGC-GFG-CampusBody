@@ -1,0 +1,308 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Contact Messages — Dashboard{% endblock %}
+{% block page_title %}Contact Messages Inbox{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* message detail modal */
+  .msg-modal {
+    display: none;
+    position: fixed; inset: 0; z-index: 9000;
+    background: rgba(4,8,12,.85); backdrop-filter: blur(8px);
+    align-items: center; justify-content: center; padding: 1.5rem;
+  }
+  .msg-modal.open { display: flex; }
+  .msg-modal-box {
+    background: rgba(14,21,32,.95);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 16px; padding: 2rem;
+    max-width: 580px; width: 100%;
+    position: relative; overflow: hidden;
+    animation: modalIn .25s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes modalIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .msg-modal-box::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg, transparent, #00ff87, transparent);
+  }
+  .msg-close {
+    position: absolute; top: 1rem; right: 1rem;
+    width: 30px; height: 30px; border-radius: 8px;
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+    color: var(--muted); font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: none; transition: all .2s;
+  }
+  .msg-close:hover { background: rgba(239,68,68,.12); color: #f87171; border-color: rgba(239,68,68,.3); }
+  .msg-from-row {
+    display: flex; align-items: center; gap: .85rem; margin-bottom: 1.25rem;
+  }
+  .msg-av {
+    width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800;
+    color: #04080c; background: linear-gradient(135deg,#2F8D46,#00ff87);
+  }
+  .msg-sender-name { font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; color:#dde6f0; }
+  .msg-sender-email { font-family:var(--mono); font-size:.68rem; color:var(--muted); }
+  .msg-subject-lbl  { font-family:var(--mono); font-size:.62rem; color:#3a4a58; letter-spacing:.1em; text-transform:uppercase; margin-bottom:.35rem; }
+  .msg-subject-val  { font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:700; color:#dde6f0; margin-bottom:1.1rem; }
+  .msg-body {
+    font-family:'DM Sans',sans-serif; font-size:.95rem; font-weight:300;
+    color:#8899aa; line-height:1.8;
+    background: rgba(0,0,0,.25); border-radius:10px;
+    padding: 1.1rem 1.25rem; margin-bottom: 1.25rem;
+    border: 1px solid rgba(255,255,255,.06);
+    white-space: pre-wrap;
+  }
+  .msg-date-row {
+    font-family:var(--mono); font-size:.68rem; color:#3a4a58; margin-bottom:1.5rem;
+  }
+  .msg-actions { display:flex; gap:.75rem; flex-wrap:wrap; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- QUICK STATS ROW -->
+<div style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+  <div style="background:rgba(0,255,135,.07);border:1px solid rgba(0,255,135,.18);border-radius:10px;padding:.75rem 1.5rem;display:flex;align-items:center;gap:.75rem;">
+    <span style="font-size:1.3rem;">📬</span>
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:#00ff87;line-height:1;">{{ contacts.count }}</div>
+      <div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Total</div>
+    </div>
+  </div>
+  <div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.18);border-radius:10px;padding:.75rem 1.5rem;display:flex;align-items:center;gap:.75rem;">
+    <span style="font-size:1.3rem;">🔴</span>
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:#f87171;line-height:1;">{{ contacts|dictsort:"is_read"|length }}</div>
+      <div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Unread</div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTER TABS -->
+<div style="display:flex;gap:.5rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+  <button class="btn btn-outline btn-sm" id="fAll"
+          onclick="filterC('all',this)"
+          style="border-color:rgba(0,255,135,.35);color:var(--green);">
+    All Messages
+  </button>
+  <button class="btn btn-outline btn-sm" id="fNew"
+          onclick="filterC('new',this)">
+    🔴 Unread Only
+  </button>
+  <button class="btn btn-outline btn-sm" id="fRead"
+          onclick="filterC('read',this)">
+    ✅ Read Only
+  </button>
+</div>
+
+<!-- MESSAGES TABLE -->
+<div class="dash-table-wrap">
+  <table class="dash-table">
+    <thead>
+      <tr>
+        <th>From</th>
+        <th>Subject</th>
+        <th>Preview</th>
+        <th>Date</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in contacts %}
+      <tr class="contact-row" data-read="{{ c.is_read|yesno:'true,false' }}"
+          style="{% if not c.is_read %}background:rgba(0,255,135,.025);{% endif %}">
+
+        <!-- From -->
+        <td>
+          <div style="font-weight:{% if not c.is_read %}700{% else %}400{% endif %};color:{% if not c.is_read %}var(--text){% else %}var(--muted){% endif %};">
+            {{ c.name }}
+          </div>
+          <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);">
+            {{ c.email }}
+          </div>
+        </td>
+
+        <!-- Subject -->
+        <td style="font-size:.85rem;color:{% if not c.is_read %}var(--text){% else %}var(--muted){% endif %};font-weight:{% if not c.is_read %}500{% else %}400{% endif %};">
+          {{ c.subject|default:"(no subject)"|truncatechars:38 }}
+        </td>
+
+        <!-- Preview -->
+        <td style="color:var(--muted);font-size:.83rem;max-width:220px;">
+          {{ c.message|truncatechars:55 }}
+        </td>
+
+        <!-- Date -->
+        <td style="font-family:var(--mono);font-size:.68rem;color:var(--muted);white-space:nowrap;">
+          {{ c.submitted_at|date:"M d, Y" }}<br>
+          <span style="color:#3a4a58;">{{ c.submitted_at|date:"g:i A" }}</span>
+        </td>
+
+        <!-- Status -->
+        <td>
+          {% if c.is_read %}
+            <span class="badge badge-gray">Read</span>
+          {% else %}
+            <span class="badge badge-green">● New</span>
+          {% endif %}
+        </td>
+
+        <!-- Actions -->
+        <td>
+          <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
+            <!-- View full message -->
+            <button class="btn btn-outline btn-sm"
+                    onclick="openMsg(
+                      '{{ c.name|escapejs }}',
+                      '{{ c.email|escapejs }}',
+                      '{{ c.subject|default:"(no subject)"|escapejs }}',
+                      '{{ c.message|escapejs }}',
+                      '{{ c.submitted_at|date:"F d, Y · g:i A" }}',
+                      '{{ c.email|urlencode }}',
+                      '{{ c.subject|default:"Your message"|urlencode }}',
+                      {% if not c.is_read %}'{% url "dashboard_contact_read" c.pk %}'{% else %}''{% endif %},
+                      '{% url "dashboard_contact_delete" c.pk %}'
+                    )">
+              View
+            </button>
+
+            <!-- Reply -->
+            <a href="mailto:{{ c.email }}?subject=Re: {{ c.subject|default:'Your message' }}"
+               class="btn btn-primary btn-sm" title="Reply via email">
+              Reply
+            </a>
+
+            <!-- Mark read -->
+            {% if not c.is_read %}
+            <a href="{% url 'dashboard_contact_read' c.pk %}"
+               class="btn btn-outline btn-sm">
+              ✓ Read
+            </a>
+            {% endif %}
+
+            <!-- Delete -->
+            <a href="{% url 'dashboard_contact_delete' c.pk %}"
+               class="btn btn-danger btn-sm"
+               onclick="return confirm('Delete this message permanently? This cannot be undone.')">
+              Del
+            </a>
+          </div>
+        </td>
+
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6">
+          <div class="empty-state">
+            <p>📭</p>
+            <p>No contact messages yet.</p>
+            <p style="margin-top:.5rem;font-size:.72rem;">Messages from the About page contact form will appear here.</p>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ══ MESSAGE DETAIL MODAL ══ -->
+<div class="msg-modal" id="msgModal" onclick="if(event.target===this)closeMsg()">
+  <div class="msg-modal-box">
+    <button class="msg-close" onclick="closeMsg()">✕</button>
+
+    <div class="msg-from-row">
+      <div class="msg-av" id="modalAv">A</div>
+      <div>
+        <div class="msg-sender-name" id="modalName">—</div>
+        <div class="msg-sender-email" id="modalEmail">—</div>
+      </div>
+    </div>
+
+    <div class="msg-subject-lbl">Subject</div>
+    <div class="msg-subject-val" id="modalSubject">—</div>
+
+    <div class="msg-body" id="modalBody">—</div>
+
+    <div class="msg-date-row">
+      📅 Received: <span id="modalDate">—</span>
+    </div>
+
+    <div class="msg-actions">
+      <a id="modalReply" href="#" class="btn btn-primary">
+        ✉️ Reply via Email
+      </a>
+      <a id="modalRead" href="#" class="btn btn-outline" style="display:none;">
+        ✓ Mark as Read
+      </a>
+      <a id="modalDelete" href="#"
+         class="btn btn-danger"
+         onclick="return confirm('Delete this message?')">
+        🗑️ Delete
+      </a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/* ── FILTER ── */
+function filterC(type, btn) {
+  ['fAll','fNew','fRead'].forEach(id => {
+    const el = document.getElementById(id);
+    el.style.borderColor = ''; el.style.color = '';
+  });
+  btn.style.borderColor = 'rgba(0,255,135,.35)';
+  btn.style.color = 'var(--green)';
+  document.querySelectorAll('.contact-row').forEach(row => {
+    if      (type === 'all')  row.style.display = '';
+    else if (type === 'new')  row.style.display = row.dataset.read === 'false' ? '' : 'none';
+    else                      row.style.display = row.dataset.read === 'true'  ? '' : 'none';
+  });
+}
+
+/* ── MESSAGE MODAL ── */
+function openMsg(name, email, subject, message, date, emailEnc, subjectEnc, readUrl, deleteUrl) {
+  document.getElementById('modalAv').textContent      = name.charAt(0).toUpperCase();
+  document.getElementById('modalName').textContent    = name;
+  document.getElementById('modalEmail').textContent   = email;
+  document.getElementById('modalSubject').textContent = subject;
+  document.getElementById('modalBody').textContent    = message;
+  document.getElementById('modalDate').textContent    = date;
+
+  // reply link
+  document.getElementById('modalReply').href = `mailto:${email}?subject=Re: ${subjectEnc}`;
+
+  // mark read button
+  const readBtn = document.getElementById('modalRead');
+  if (readUrl) {
+    readBtn.style.display = 'flex';
+    readBtn.href = readUrl;
+  } else {
+    readBtn.style.display = 'none';
+  }
+
+  // delete link
+  document.getElementById('modalDelete').href = deleteUrl;
+
+  document.getElementById('msgModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMsg() {
+  document.getElementById('msgModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* close on Escape */
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMsg(); });
+</script>
+{% endblock %}
